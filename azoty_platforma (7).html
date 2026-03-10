@@ -1,0 +1,2352 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Azoty Farmer — Platforma dla Rolników</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #1a2e52;
+    --navy-mid: #243b6a;
+    --blue: #2563c8;
+    --blue-light: #3b82e8;
+    --accent: #00b894;
+    --accent2: #f59e0b;
+    --red: #e74c3c;
+    --bg: #f0f4fb;
+    --card: #ffffff;
+    --text: #1a2e52;
+    --muted: #64748b;
+    --border: #dde6f5;
+    --sidebar-w: 240px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* === SIDEBAR === */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--navy);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    left: 0; top: 0;
+    z-index: 100;
+    transition: transform .3s;
+  }
+  .sidebar-logo {
+    padding: 22px 20px 18px;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .logo-badge {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, #2563c8, #00b894);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; color: #fff; font-size: 15px; letter-spacing: -.5px;
+  }
+  .logo-text { color: #fff; font-size: 14px; font-weight: 600; line-height: 1.2; }
+  .logo-sub { color: rgba(255,255,255,.45); font-size: 11px; }
+  .sidebar-nav { padding: 12px 10px; flex: 1; }
+  .nav-group { margin-bottom: 8px; }
+  .nav-label { color: rgba(255,255,255,.3); font-size: 10px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; padding: 8px 10px 4px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px; border-radius: 8px;
+    color: rgba(255,255,255,.6); font-size: 13.5px; font-weight: 500;
+    cursor: pointer; transition: all .2s; position: relative;
+  }
+  .nav-item:hover { background: rgba(255,255,255,.07); color: #fff; }
+  .nav-item.active { background: rgba(37,99,200,.4); color: #fff; }
+  .nav-item.active::before {
+    content: ''; position: absolute; left: 0; top: 20%; bottom: 20%;
+    width: 3px; background: var(--accent); border-radius: 0 3px 3px 0;
+  }
+  .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+  .nav-badge {
+    margin-left: auto; background: var(--accent2); color: #fff;
+    font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px;
+  }
+  .sidebar-footer {
+    padding: 16px; border-top: 1px solid rgba(255,255,255,.08);
+  }
+  .user-card {
+    display: flex; align-items: center; gap: 10px; cursor: pointer;
+  }
+  .user-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: linear-gradient(135deg, #3b82e8, #00b894);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: 14px;
+  }
+  .user-name { color: #fff; font-size: 13px; font-weight: 500; }
+  .user-farm { color: rgba(255,255,255,.4); font-size: 11px; }
+
+  /* === MAIN === */
+  .main { margin-left: var(--sidebar-w); flex: 1; }
+  .topbar {
+    background: #fff; border-bottom: 1px solid var(--border);
+    padding: 14px 28px; display: flex; align-items: center; gap: 16px;
+    position: sticky; top: 0; z-index: 50;
+  }
+  .topbar-title { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; color: var(--navy); flex: 1; }
+  .topbar-actions { display: flex; align-items: center; gap: 10px; }
+  .btn {
+    padding: 8px 16px; border-radius: 8px; border: none;
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .btn-primary { background: var(--blue); color: #fff; }
+  .btn-primary:hover { background: var(--blue-light); }
+  .btn-outline { background: transparent; color: var(--blue); border: 1.5px solid var(--blue); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .notif-bell {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--bg); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; position: relative; font-size: 18px;
+  }
+  .notif-dot {
+    width: 8px; height: 8px; background: var(--red); border-radius: 50%;
+    position: absolute; top: 6px; right: 6px; border: 1.5px solid #fff;
+  }
+
+  /* === PAGES === */
+  .page { display: none; padding: 24px 28px; }
+  .page.active { display: block; }
+
+  /* === DASHBOARD === */
+  .welcome-banner {
+    background: linear-gradient(135deg, var(--navy) 0%, #2563c8 60%, #1a8a6a 100%);
+    border-radius: 16px; padding: 28px 32px; color: #fff; margin-bottom: 24px;
+    position: relative; overflow: hidden;
+  }
+  .welcome-banner::after {
+    content: '🌾'; position: absolute; right: 32px; top: 50%; transform: translateY(-50%);
+    font-size: 64px; opacity: .15;
+  }
+  .welcome-date { font-size: 12px; opacity: .6; margin-bottom: 4px; }
+  .welcome-title { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+  .welcome-sub { font-size: 14px; opacity: .75; }
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-card {
+    background: var(--card); border-radius: 14px; padding: 18px 20px;
+    border: 1px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .stat-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; font-size: 22px;
+    flex-shrink: 0;
+  }
+  .stat-icon.green { background: #d1fae5; }
+  .stat-icon.blue { background: #dbeafe; }
+  .stat-icon.amber { background: #fef3c7; }
+  .stat-icon.purple { background: #ede9fe; }
+  .stat-val { font-size: 22px; font-weight: 700; color: var(--navy); }
+  .stat-lbl { font-size: 12px; color: var(--muted); }
+  .stat-change { font-size: 11px; color: var(--accent); font-weight: 600; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  .card {
+    background: var(--card); border-radius: 14px; padding: 20px;
+    border: 1px solid var(--border);
+  }
+  .card-title {
+    font-size: 14px; font-weight: 700; color: var(--navy);
+    margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+  }
+  .card-title .badge {
+    font-size: 10px; background: var(--bg); color: var(--muted);
+    padding: 2px 7px; border-radius: 10px; font-weight: 500;
+  }
+
+  /* Weather card */
+  .weather-main { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+  .weather-icon { font-size: 48px; }
+  .weather-temp { font-size: 38px; font-weight: 700; color: var(--navy); }
+  .weather-desc { font-size: 13px; color: var(--muted); }
+  .weather-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .weather-item { background: var(--bg); border-radius: 8px; padding: 8px 12px; font-size: 12px; }
+  .weather-item span { display: block; font-weight: 600; color: var(--navy); font-size: 14px; }
+  .alert-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 10px; margin-bottom: 8px;
+    font-size: 13px;
+  }
+  .alert-item.warning { background: #fef9c3; color: #92400e; border: 1px solid #fde68a; }
+  .alert-item.info { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+  .alert-item.danger { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+  /* Prices */
+  .price-table { width: 100%; border-collapse: collapse; }
+  .price-table th { font-size: 11px; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); font-weight: 600; padding: 8px 0; text-align: left; border-bottom: 1px solid var(--border); }
+  .price-table td { padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13.5px; }
+  .price-table tr:last-child td { border: none; }
+  .price-up { color: #16a34a; font-weight: 600; }
+  .price-down { color: var(--red); font-weight: 600; }
+
+  /* Field map placeholder */
+  .map-placeholder {
+    background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 40%, #81c784 100%);
+    border-radius: 12px; height: 200px; display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden; margin-bottom: 14px;
+  }
+  .map-placeholder::before {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .map-field {
+    width: 130px; height: 80px;
+    background: rgba(0,120,60,.45); border-radius: 8px 14px 6px 12px;
+    position: absolute; top: 30px; left: 30px;
+    border: 2px solid rgba(255,255,255,.6);
+  }
+  .map-field2 {
+    width: 90px; height: 60px;
+    background: rgba(0,80,40,.4); border-radius: 14px 6px 12px 8px;
+    position: absolute; top: 60px; right: 40px;
+    border: 2px solid rgba(255,255,255,.6);
+  }
+  .map-ndvi {
+    position: absolute; bottom: 12px; right: 12px;
+    background: rgba(0,0,0,.55); color: #fff; font-size: 11px;
+    padding: 4px 9px; border-radius: 6px; backdrop-filter: blur(4px);
+  }
+  .ndvi-bar { display: flex; gap: 3px; margin-top: 4px; }
+  .ndvi-dot { width: 12px; height: 8px; border-radius: 2px; }
+
+  /* NDVI chart */
+  .ndvi-chart { display: flex; align-items: flex-end; gap: 4px; height: 80px; margin: 12px 0; }
+  .ndvi-bar-item {
+    flex: 1; border-radius: 4px 4px 0 0; transition: opacity .2s;
+    cursor: pointer; min-width: 0;
+  }
+  .ndvi-bar-item:hover { opacity: .8; }
+
+  /* === FINANCE PAGE === */
+  .finance-hero {
+    background: linear-gradient(135deg, #1a2e52, #2563c8);
+    border-radius: 16px; padding: 28px; color: #fff; margin-bottom: 24px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .finance-hero h2 { font-family: 'Fraunces', serif; font-size: 22px; margin-bottom: 8px; }
+  .finance-hero p { opacity: .75; font-size: 14px; }
+  .finance-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+  .fin-card {
+    background: var(--card); border-radius: 14px; padding: 20px;
+    border: 1px solid var(--border); cursor: pointer; transition: all .2s;
+  }
+  .fin-card:hover { border-color: var(--blue); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(37,99,200,.1); }
+  .fin-icon { font-size: 28px; margin-bottom: 12px; }
+  .fin-title { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .fin-desc { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+  .fin-rate { font-size: 22px; font-weight: 700; color: var(--blue); }
+  .fin-rate-lbl { font-size: 11px; color: var(--muted); }
+  .comparator { background: var(--card); border-radius: 14px; padding: 20px; border: 1px solid var(--border); margin-bottom: 20px; }
+  .comp-row { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .comp-row:last-child { border: none; }
+  .comp-bank { font-size: 13px; font-weight: 600; color: var(--navy); width: 140px; }
+  .comp-bar-wrap { flex: 1; margin: 0 12px; }
+  .comp-bar { height: 8px; border-radius: 4px; background: var(--blue); }
+  .comp-rate { font-size: 13px; font-weight: 700; color: var(--navy); width: 60px; text-align: right; }
+  .comp-badge { font-size: 10px; padding: 3px 8px; border-radius: 8px; font-weight: 600; margin-left: 8px; }
+  .comp-badge.best { background: #d1fae5; color: #065f46; }
+  .comp-badge.mid { background: #fef3c7; color: #92400e; }
+
+  /* === MARKETPLACE === */
+  .search-bar {
+    display: flex; gap: 10px; margin-bottom: 20px;
+  }
+  .search-input {
+    flex: 1; padding: 10px 16px; border-radius: 10px;
+    border: 1.5px solid var(--border); font-size: 14px;
+    background: var(--card); color: var(--text);
+    font-family: 'DM Sans', sans-serif; outline: none;
+  }
+  .search-input:focus { border-color: var(--blue); }
+  .product-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .product-card {
+    background: var(--card); border-radius: 14px; padding: 16px;
+    border: 1px solid var(--border); transition: all .2s; cursor: pointer;
+  }
+  .product-card:hover { border-color: var(--blue); transform: translateY(-2px); }
+  .product-img {
+    height: 100px; border-radius: 10px; margin-bottom: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 44px;
+  }
+  .product-name { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .product-cat { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+  .product-price { font-size: 18px; font-weight: 700; color: var(--blue); }
+  .product-unit { font-size: 11px; color: var(--muted); }
+  .product-tag { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 6px; font-weight: 600; margin-bottom: 8px; }
+  .tag-azoty { background: #dbeafe; color: #1e40af; }
+  .tag-partner { background: #f3e8ff; color: #6b21a8; }
+  .tag-promo { background: #d1fae5; color: #065f46; }
+
+  /* === FIELDS / MAP === */
+  .fields-map {
+    background: linear-gradient(160deg, #4caf7d 0%, #2e7d52 40%, #1b5e3f 100%);
+    border-radius: 16px; height: 360px; position: relative; overflow: hidden;
+    margin-bottom: 20px; display: flex; align-items: center; justify-content: center;
+  }
+  .fields-map::before {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Ccircle cx='40' cy='40' r='1' fill='rgba(255,255,255,0.08)'/%3E%3C/svg%3E") repeat;
+  }
+  .map-satellite-label {
+    position: absolute; top: 14px; left: 14px;
+    background: rgba(0,0,0,.5); color: #fff; font-size: 12px;
+    padding: 5px 12px; border-radius: 8px; backdrop-filter: blur(6px);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .map-coords { position: absolute; bottom: 14px; left: 14px; color: rgba(255,255,255,.6); font-size: 11px; }
+  .field-polygon {
+    position: absolute; border: 2px solid rgba(255,255,255,.8);
+    cursor: pointer; transition: all .2s;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: #fff; font-weight: 600;
+    text-shadow: 0 1px 3px rgba(0,0,0,.6);
+  }
+  .field-polygon:hover { border-color: #fff; filter: brightness(1.2); }
+  .fp1 { width: 160px; height: 100px; background: rgba(0,180,100,.5); border-radius: 12px 20px 10px 16px; top: 60px; left: 80px; }
+  .fp2 { width: 110px; height: 80px; background: rgba(0,120,80,.5); border-radius: 20px 8px 16px 10px; top: 80px; right: 120px; }
+  .fp3 { width: 130px; height: 70px; background: rgba(0,150,90,.4); border-radius: 10px 18px 12px 20px; bottom: 80px; left: 180px; }
+  .ndvi-legend {
+    position: absolute; right: 14px; top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,.55); border-radius: 10px; padding: 10px;
+    backdrop-filter: blur(6px);
+  }
+  .ndvi-legend div { font-size: 10px; color: rgba(255,255,255,.8); margin-bottom: 4px; }
+  .ndvi-gradient { width: 14px; height: 80px; border-radius: 4px; background: linear-gradient(to bottom, #d32f2f, #f9a825, #66bb6a, #1b5e20); }
+
+  .fields-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .field-card { background: var(--card); border-radius: 12px; padding: 16px; border: 1px solid var(--border); cursor: pointer; transition: all .2s; }
+  .field-card:hover { border-color: var(--accent); }
+  .field-name { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .field-info { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+  .ndvi-mini { display: flex; gap: 2px; margin-top: 8px; }
+  .ndvi-mini-bar { height: 6px; flex: 1; border-radius: 2px; }
+  .ndvi-score { font-size: 20px; font-weight: 700; }
+  .ndvi-good { color: #16a34a; }
+  .ndvi-warn { color: #d97706; }
+
+  /* === ADVISOR / KAM === */
+  .kam-hero { background: linear-gradient(135deg, #065f46, #059669); border-radius: 16px; padding: 28px; color: #fff; margin-bottom: 24px; }
+  .kam-hero h2 { font-family: 'Fraunces', serif; font-size: 22px; margin-bottom: 6px; }
+  .kam-hero p { opacity: .8; font-size: 14px; }
+  .advisors-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+  .advisor-card { background: var(--card); border-radius: 14px; padding: 20px; border: 1px solid var(--border); text-align: center; }
+  .advisor-avatar { width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 12px; font-size: 24px; display: flex; align-items: center; justify-content: center; }
+  .advisor-name { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 2px; }
+  .advisor-role { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+  .advisor-region { font-size: 11px; background: var(--bg); padding: 3px 10px; border-radius: 8px; display: inline-block; margin-bottom: 12px; }
+  .chat-btn {
+    width: 100%; background: var(--accent); color: #fff;
+    border: none; border-radius: 8px; padding: 9px; font-size: 13px;
+    font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+
+  /* Diagnostic bot */
+  .bot-chat { background: var(--card); border-radius: 14px; padding: 20px; border: 1px solid var(--border); }
+  .bot-messages { min-height: 180px; margin-bottom: 14px; }
+  .bot-msg { display: flex; gap: 10px; margin-bottom: 12px; }
+  .bot-msg.user { flex-direction: row-reverse; }
+  .bot-bubble {
+    max-width: 75%; padding: 10px 14px; border-radius: 14px;
+    font-size: 13.5px; line-height: 1.5;
+  }
+  .bot-msg:not(.user) .bot-bubble { background: var(--bg); border-radius: 4px 14px 14px 14px; }
+  .bot-msg.user .bot-bubble { background: var(--blue); color: #fff; border-radius: 14px 4px 14px 14px; }
+  .bot-avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+  .bot-avatar.ai { background: #d1fae5; }
+  .bot-avatar.me { background: var(--blue); color: #fff; font-size: 12px; font-weight: 700; }
+  .bot-input-row { display: flex; gap: 8px; }
+  .bot-input {
+    flex: 1; padding: 9px 14px; border-radius: 10px;
+    border: 1.5px solid var(--border); font-size: 13.5px;
+    font-family: 'DM Sans', sans-serif; outline: none;
+  }
+  .bot-input:focus { border-color: var(--accent); }
+  .bot-send { background: var(--accent); color: #fff; border: none; border-radius: 10px; width: 40px; cursor: pointer; font-size: 18px; }
+
+  /* === LOYALTY === */
+  .loyalty-hero { background: linear-gradient(135deg, #7c3aed, #4f46e5); border-radius: 16px; padding: 28px; color: #fff; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
+  .loyalty-points { font-size: 48px; font-weight: 700; }
+  .loyalty-label { font-size: 13px; opacity: .75; margin-top: 2px; }
+  .reward-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+  .reward-card { background: var(--card); border-radius: 14px; padding: 18px; border: 1px solid var(--border); }
+  .reward-icon { font-size: 32px; margin-bottom: 10px; }
+  .reward-name { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .reward-pts { font-size: 12px; color: var(--muted); }
+  .reward-cost { font-size: 18px; font-weight: 700; color: #7c3aed; margin-top: 8px; }
+  .progress-bar-wrap { background: var(--border); border-radius: 8px; height: 10px; margin-top: 10px; overflow: hidden; }
+  .progress-bar { height: 100%; border-radius: 8px; background: linear-gradient(90deg, var(--blue), var(--accent)); }
+
+  /* NEIGHBOUR ALERTS */
+  .alert-feed { }
+  .alert-feed-item { background: var(--card); border-radius: 12px; padding: 14px 16px; border: 1px solid var(--border); margin-bottom: 10px; display: flex; gap: 12px; align-items: flex-start; }
+  .alert-feed-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+  .alert-feed-title { font-size: 13.5px; font-weight: 600; color: var(--navy); margin-bottom: 3px; }
+  .alert-feed-desc { font-size: 12px; color: var(--muted); }
+  .alert-feed-meta { font-size: 11px; color: var(--muted); margin-top: 4px; display: flex; gap: 10px; }
+  .alert-feed-dist { background: var(--bg); padding: 2px 8px; border-radius: 6px; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; background: var(--bg); padding: 4px; border-radius: 10px; width: fit-content; }
+  .tab { padding: 7px 16px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--muted); transition: all .2s; }
+  .tab.active { background: var(--card); color: var(--navy); box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+
+  /* Misc */
+  .section-title { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+  .see-all { font-size: 12px; color: var(--blue); cursor: pointer; font-weight: 600; }
+  .chip { display: inline-block; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; margin-right: 4px; cursor: pointer; }
+  .chip-active { background: var(--blue); color: #fff; }
+  .chip-inactive { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+  /* Animations */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .page.active .stat-card, .page.active .card, .page.active .fin-card, .page.active .product-card {
+    animation: fadeUp .3s ease both;
+  }
+  .page.active .stat-card:nth-child(1) { animation-delay: .05s; }
+  .page.active .stat-card:nth-child(2) { animation-delay: .1s; }
+  .page.active .stat-card:nth-child(3) { animation-delay: .15s; }
+  .page.active .stat-card:nth-child(4) { animation-delay: .2s; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-badge">GA</div>
+    <div>
+      <div class="logo-text">Azoty Farmer</div>
+      <div class="logo-sub">Platforma Rolnicza</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group">
+      <div class="nav-label">Główne</div>
+      <div class="nav-item active" onclick="showPage('dashboard')">
+        <span class="nav-icon">🏠</span> Pulpit
+      </div>
+      <div class="nav-item" onclick="showPage('profile')">
+        <span class="nav-icon">👤</span> Mój Profil
+      </div>
+      <div class="nav-item" onclick="showPage('fields')">
+        <span class="nav-icon">🗺️</span> Moje Pola
+        <span class="nav-badge">3</span>
+      </div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Finanse — Pilot</div>
+      <div class="nav-item" onclick="showPage('finance')">
+        <span class="nav-icon">💳</span> Finansowanie
+      </div>
+      <div class="nav-item" onclick="showPage('marketplace')">
+        <span class="nav-icon">🛒</span> Marketplace
+      </div>
+      <div class="nav-item" onclick="showPage('loyalty')">
+        <span class="nav-icon">⭐</span> Program Lojalny
+      </div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Giełda & Barter</div>
+      <div class="nav-item" onclick="showPage('barter')">
+        <span class="nav-icon">🌾</span> Barter 4.0
+      </div>
+      <div class="nav-item" onclick="showPage('esg')">
+        <span class="nav-icon">🌱</span> ESG & Węgiel
+        <span class="nav-badge" style="background:#00b894">NEW</span>
+      </div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Wsparcie</div>
+      <div class="nav-item" onclick="showPage('advisor')">
+        <span class="nav-icon">🌿</span> Doradca KAM
+      </div>
+      <div class="nav-item" onclick="showPage('alerts')">
+        <span class="nav-icon">🔔</span> Alerty Sąsiedzkie
+        <span class="nav-badge">5</span>
+      </div>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="user-avatar">JK</div>
+      <div>
+        <div class="user-name">Jan Kowalski</div>
+        <div class="user-farm">Gosp. #1234567 · 85 ha</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-title" id="page-title">Pulpit</div>
+    <div class="topbar-actions">
+      <div class="notif-bell" onclick="showPage('alerts')">🔔<div class="notif-dot"></div></div>
+      <button class="btn btn-outline btn-sm">📞 WhatsApp KAM</button>
+      <button class="btn btn-primary btn-sm">+ Nowe zamówienie</button>
+    </div>
+  </div>
+
+  <!-- ============ DASHBOARD ============ -->
+  <div id="page-dashboard" class="page active">
+    <div class="welcome-banner">
+      <div>
+        <div class="welcome-date">Piątek, 6 marca 2026 · Okolice Puław</div>
+        <div class="welcome-title">Dzień dobry, Janie! 👋</div>
+        <div class="welcome-sub">Twoje pola mają dobry stan NDVI. Sprawdź aktualną prognozę przymrozków.</div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon green">🌾</div>
+        <div>
+          <div class="stat-val">85 ha</div>
+          <div class="stat-lbl">Łączna powierzchnia</div>
+          <div class="stat-change">↑ 3 pola aktywne</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue">💰</div>
+        <div>
+          <div class="stat-val">0,0%</div>
+          <div class="stat-lbl">Kredyt pre-season</div>
+          <div class="stat-change">Dostępny do 31.03</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon amber">📦</div>
+        <div>
+          <div class="stat-val">2 400 zł</div>
+          <div class="stat-lbl">Zamówień w toku</div>
+          <div class="stat-change">Dostawa: 12.03</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon purple">⭐</div>
+        <div>
+          <div class="stat-val">3 820</div>
+          <div class="stat-lbl">Punkty lojalnościowe</div>
+          <div class="stat-change">↑ +480 ten miesiąc</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Weather -->
+      <div class="card">
+        <div class="card-title">🌤️ Prognoza pogody <span class="badge">Puławy</span></div>
+        <div class="weather-main">
+          <div class="weather-icon">🌤️</div>
+          <div>
+            <div class="weather-temp">+6°C</div>
+            <div class="weather-desc">Częściowe zachmurzenie · NW 15 km/h</div>
+          </div>
+        </div>
+        <div class="weather-detail">
+          <div class="weather-item">Wilgotność<span>72%</span></div>
+          <div class="weather-item">Ciśnienie<span>1018 hPa</span></div>
+          <div class="weather-item">Opady (7d)<span>12 mm</span></div>
+          <div class="weather-item">Wschód słońca<span>06:28</span></div>
+        </div>
+        <div style="margin-top:14px;">
+          <div class="alert-item danger">⚠️ Uwaga: Ryzyko przymrozku w nocy 8.03 (−2°C)</div>
+          <div class="alert-item warning">🌧️ Deszcz prognozowany 10–11.03. Ogranicz opryski.</div>
+        </div>
+      </div>
+
+      <!-- Skupy / Ceny -->
+      <div class="card">
+        <div class="card-title">📊 Ceny skupu <span class="badge">Aktualizacja: dziś</span></div>
+        <table class="price-table">
+          <tr><th>Produkt</th><th>Cena skupu</th><th>Zmiana</th><th>Prognoza</th></tr>
+          <tr><td>🌾 Pszenica</td><td><strong>890 zł/t</strong></td><td class="price-up">+12 zł</td><td>📈 Wzrost</td></tr>
+          <tr><td>🌽 Kukurydza</td><td><strong>720 zł/t</strong></td><td class="price-down">−8 zł</td><td>📉 Stabilny</td></tr>
+          <tr><td>🌻 Rzepak</td><td><strong>1 850 zł/t</strong></td><td class="price-up">+35 zł</td><td>📈 Wzrost</td></tr>
+          <tr><td>🫘 Soja</td><td><strong>1 640 zł/t</strong></td><td class="price-up">+20 zł</td><td>📈 Wzrost</td></tr>
+          <tr><td>🌾 Żyto</td><td><strong>580 zł/t</strong></td><td class="price-down">−5 zł</td><td>➡️ Stabilny</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Podgląd mapy NDVI -->
+      <div class="card">
+        <div class="card-title">🛰️ Monitoring satelitarny NDVI <span class="see-all" onclick="showPage('fields')">Otwórz mapę →</span></div>
+        <div class="map-placeholder">
+          <div class="map-field">Pole 1<br>45 ha</div>
+          <div class="map-field2">Pole 2<br>28 ha</div>
+          <div class="map-ndvi">
+            <div>Wskaźnik NDVI</div>
+            <div class="ndvi-bar">
+              <div class="ndvi-dot" style="background:#d32f2f"></div>
+              <div class="ndvi-dot" style="background:#f9a825"></div>
+              <div class="ndvi-dot" style="background:#66bb6a"></div>
+              <div class="ndvi-dot" style="background:#1b5e20"></div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <div style="flex:1;background:var(--bg);border-radius:8px;padding:10px;font-size:12px;">
+            <div style="font-weight:700;color:#16a34a;font-size:16px;">0.78</div>
+            NDVI Pole 1 · Dobry
+          </div>
+          <div style="flex:1;background:var(--bg);border-radius:8px;padding:10px;font-size:12px;">
+            <div style="font-weight:700;color:#d97706;font-size:16px;">0.61</div>
+            NDVI Pole 2 · Średni
+          </div>
+          <div style="flex:1;background:var(--bg);border-radius:8px;padding:10px;font-size:12px;">
+            <div style="font-weight:700;color:#16a34a;font-size:16px;">0.81</div>
+            NDVI Pole 3 · Dobry
+          </div>
+        </div>
+      </div>
+
+      <!-- Zmiany prawne / Dopłaty -->
+      <div class="card">
+        <div class="card-title">📋 Aktualności i zmiany prawne</div>
+        <div class="alert-item info">📄 <div><strong>Dopłaty bezpośrednie 2025</strong><br><span style="font-size:12px">Wnioski do ARiMR do 15.05.2025. Stawka podstawowa: 900 zł/ha.</span></div></div>
+        <div class="alert-item warning">⚖️ <div><strong>Nowe normy azotu od 2026</strong><br><span style="font-size:12px">Program azotanowy — ograniczenia dawkowania na OSN.</span></div></div>
+        <div class="alert-item info">🌱 <div><strong>Eko-schematy — bonus +20%</strong><br><span style="font-size:12px">Uproszczony płodozmian kwalifikuje do dopłat w 2025.</span></div></div>
+        <div class="alert-item info">💧 <div><strong>Dotacje na nawadnianie do 60%</strong><br><span style="font-size:12px">Nabór wniosków PROW 2025: 1–30 marca 2025.</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ FIELDS / MAP ============ -->
+  <div id="page-fields" class="page">
+    <div class="fields-map">
+      <div class="map-satellite-label">🛰️ Obraz satelitarny · 2.03.2026</div>
+      <div class="field-polygon fp1">Pole Północne<br>45 ha · NDVI 0.78</div>
+      <div class="field-polygon fp2">Pole Wschodnie<br>28 ha · NDVI 0.61</div>
+      <div class="field-polygon fp3">Pole Południowe<br>12 ha · NDVI 0.81</div>
+      <div class="ndvi-legend">
+        <div style="margin-bottom:6px;font-size:10px;color:rgba(255,255,255,.6)">NDVI</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <div class="ndvi-gradient"></div>
+          <div>
+            <div style="font-size:10px;color:rgba(255,255,255,.8)">1.0</div>
+            <div style="height:52px"></div>
+            <div style="font-size:10px;color:rgba(255,255,255,.8)">0.0</div>
+          </div>
+        </div>
+      </div>
+      <div class="map-coords">📍 51.4169°N, 21.9667°E</div>
+    </div>
+
+    <div class="fields-list">
+      <div class="field-card">
+        <div style="display:flex;justify-content:space-between;align-items:start">
+          <div class="field-name">🌾 Pole Północne</div>
+          <div class="ndvi-score ndvi-good">0.78</div>
+        </div>
+        <div class="field-info">45 ha · Pszenica ozima · Puławy, pow. północny</div>
+        <div style="font-size:12px;color:var(--muted)">Ostatni przegląd: 2.03.2026</div>
+        <div class="ndvi-mini">
+          <div class="ndvi-mini-bar" style="background:#f9a825;flex:1"></div>
+          <div class="ndvi-mini-bar" style="background:#8bc34a;flex:2"></div>
+          <div class="ndvi-mini-bar" style="background:#4caf50;flex:3"></div>
+          <div class="ndvi-mini-bar" style="background:#1b5e20;flex:4"></div>
+          <div class="ndvi-mini-bar" style="background:#2e7d32;flex:3"></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">Historia NDVI (5 tygodni)</div>
+        <button class="btn btn-outline btn-sm" style="margin-top:10px;width:100%">🔍 Szczegóły pola</button>
+      </div>
+      <div class="field-card">
+        <div style="display:flex;justify-content:space-between;align-items:start">
+          <div class="field-name">🌽 Pole Wschodnie</div>
+          <div class="ndvi-score ndvi-warn">0.61</div>
+        </div>
+        <div class="field-info">28 ha · Kukurydza · Puławy, pow. wschodni</div>
+        <div style="font-size:12px;color:var(--muted)">Ostatni przegląd: 2.03.2026</div>
+        <div class="ndvi-mini">
+          <div class="ndvi-mini-bar" style="background:#4caf50;flex:4"></div>
+          <div class="ndvi-mini-bar" style="background:#4caf50;flex:3"></div>
+          <div class="ndvi-mini-bar" style="background:#f9a825;flex:2"></div>
+          <div class="ndvi-mini-bar" style="background:#f9a825;flex:2"></div>
+          <div class="ndvi-mini-bar" style="background:#ef9a9a;flex:1"></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">⚠️ Spadek NDVI — zalecany przegląd</div>
+        <button class="btn btn-primary btn-sm" style="margin-top:10px;width:100%">📸 Wyślij zdjęcie do KAM</button>
+      </div>
+      <div class="field-card">
+        <div style="display:flex;justify-content:space-between;align-items:start">
+          <div class="field-name">🌻 Pole Południowe</div>
+          <div class="ndvi-score ndvi-good">0.81</div>
+        </div>
+        <div class="field-info">12 ha · Rzepak · Puławy, pow. południowy</div>
+        <div style="font-size:12px;color:var(--muted)">Ostatni przegląd: 2.03.2026</div>
+        <div class="ndvi-mini">
+          <div class="ndvi-mini-bar" style="background:#8bc34a;flex:2"></div>
+          <div class="ndvi-mini-bar" style="background:#4caf50;flex:3"></div>
+          <div class="ndvi-mini-bar" style="background:#1b5e20;flex:4"></div>
+          <div class="ndvi-mini-bar" style="background:#1b5e20;flex:4"></div>
+          <div class="ndvi-mini-bar" style="background:#2e7d32;flex:4"></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">Historia NDVI (5 tygodni)</div>
+        <button class="btn btn-outline btn-sm" style="margin-top:10px;width:100%">🔍 Szczegóły pola</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ FINANCE ============ -->
+  <div id="page-finance" class="page">
+
+    <!-- TOP STRIP — jak pasek nawigacji Millennium -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:0;margin-bottom:16px;overflow:hidden">
+      <div style="display:flex;align-items:stretch;border-bottom:1px solid var(--border)">
+        <div style="padding:12px 20px;background:var(--navy);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;gap:8px;white-space:nowrap">
+          💳 Porównywarka konkurencji
+        </div>
+        <div style="display:flex;align-items:center;padding:0 16px;gap:6px;flex:1;overflow-x:auto">
+          <span id="tab-kredyt" onclick="switchFinTab('kredyt')" style="padding:12px 16px;font-size:13px;font-weight:600;cursor:pointer;color:var(--blue);border-bottom:3px solid var(--blue);white-space:nowrap">Kredyty rolnicze</span>
+          <span id="tab-ubezp" onclick="switchFinTab('ubezp')" style="padding:12px 16px;font-size:13px;font-weight:500;cursor:pointer;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap">Ubezpieczenia upraw</span>
+          <span id="tab-odrocz" onclick="switchFinTab('odrocz')" style="padding:12px 16px;font-size:13px;font-weight:500;cursor:pointer;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap">Odroczone płatności</span>
+          <span id="tab-leasing" onclick="switchFinTab('leasing')" style="padding:12px 16px;font-size:13px;font-weight:500;cursor:pointer;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap">Leasing maszyn</span>
+        </div>
+        <div style="padding:8px 16px;display:flex;align-items:center">
+          <button class="btn btn-primary btn-sm">+ Złóż wniosek</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILTER FORM — 1:1 Millennium layout -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:0;overflow:hidden">
+
+      <!-- Row 1: Grupa przedmiotowa (produkt) -->
+      <div style="display:grid;grid-template-columns:220px 1fr;border-bottom:1px solid var(--border)">
+        <div style="padding:14px 20px;background:#f8f9fb;border-right:1px solid var(--border);font-size:13px;font-weight:600;color:var(--navy);display:flex;align-items:center">
+          Grupa przedmiotowa
+        </div>
+        <div style="padding:12px 20px;display:flex;align-items:center">
+          <select id="fin-group" onchange="renderMillMatrix()" style="padding:7px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:DM Sans,sans-serif;color:var(--navy);background:#fff;min-width:320px;cursor:pointer;outline:none">
+            <option value="kredyt">Kredyty i pożyczki rolnicze</option>
+            <option value="ubezp">Ubezpieczenia upraw i maszyn</option>
+            <option value="odrocz">Odroczone płatności (harvest finance)</option>
+            <option value="leasing">Leasing maszyn rolniczych</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Row 2: Firma (bank logos) — identyczny układ co Millennium -->
+      <div style="display:grid;grid-template-columns:220px 1fr;border-bottom:1px solid var(--border)">
+        <div style="padding:14px 20px;background:#f8f9fb;border-right:1px solid var(--border);font-size:13px;font-weight:600;color:var(--navy);display:flex;align-items:flex-start;padding-top:16px">
+          Firma
+        </div>
+        <div style="padding:16px 20px">
+          <div id="mill-bank-grid" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px"></div>
+          <label style="font-size:12px;color:var(--blue);cursor:pointer;display:flex;align-items:center;gap:6px;font-weight:500">
+            <input type="checkbox" id="mill-all" onchange="millSelectAll(this.checked)" checked style="accent-color:var(--blue)">
+            Zaznacz/odznacz wszystkie firmy
+          </label>
+        </div>
+      </div>
+
+      <!-- Row 3: Rodzaj cech -->
+      <div style="display:grid;grid-template-columns:220px 1fr;border-bottom:1px solid var(--border)">
+        <div style="padding:14px 20px;background:#f8f9fb;border-right:1px solid var(--border);font-size:13px;font-weight:600;color:var(--navy);display:flex;align-items:center">
+          Rodzaj cech
+        </div>
+        <div style="padding:14px 20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;color:var(--navy)">
+            <input type="checkbox" class="mill-kind" value="Inne" checked onchange="renderMillMatrix()" style="accent-color:var(--blue);width:14px;height:14px"> Inne
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;color:var(--navy)">
+            <input type="checkbox" class="mill-kind" value="OWUL" checked onchange="renderMillMatrix()" style="accent-color:var(--blue);width:14px;height:14px"> OWUL
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;color:var(--navy)">
+            <input type="checkbox" class="mill-kind" value="TOiP" checked onchange="renderMillMatrix()" style="accent-color:var(--blue);width:14px;height:14px"> TOiP
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;color:var(--navy)">
+            <input type="checkbox" class="mill-kind" value="Ubezpieczenia" checked onchange="renderMillMatrix()" style="accent-color:var(--blue);width:14px;height:14px"> Ubezpieczenia
+          </label>
+          <label style="font-size:12px;color:var(--blue);cursor:pointer;display:flex;align-items:center;gap:5px;font-weight:500'>
+            <input type="checkbox" id="mill-all-kind" checked onchange="millSelectAllKind(this.checked)" style="accent-color:var(--blue)">
+            Zaznacz/odznacz wszystkie rodzaje
+          </label>
+        </div>
+      </div>
+
+      <!-- Row 4: Grupa cech -->
+      <div style="display:grid;grid-template-columns:220px 1fr;border-bottom:1px solid var(--border)">
+        <div style="padding:14px 20px;background:#f8f9fb;border-right:1px solid var(--border);font-size:13px;font-weight:600;color:var(--navy);display:flex;align-items:center">
+          Grupa cech
+        </div>
+        <div style="padding:14px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="mill-grp" value="Oferta" checked onchange="renderMillMatrix()" style="accent-color:var(--blue);width:14px;height:14px"> Oferta</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="mill-grp" value="Obsługa" checked onchange="renderMillMatrix()" style="accent-color:var(--blue);width:14px;height:14px"> Obsługa posprzedażowa</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="mill-grp" value="Rejestracja" checked onchange="renderMillMatrix()" style="accent-color:var(--blue);width:14px;height:14px"> Rejestracja i Zakup</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="mill-grp" value="Ubezpieczenie" checked onchange="renderMillMatrix()" style="accent-color:var(--blue);width:14px;height:14px"> Ubezpieczenia</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="mill-grp" value="GAP" checked onchange="renderMillMatrix()" style="accent-color:var(--blue);width:14px;height:14px"> Ubezpieczenie GAP</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="mill-grp" value="Produkty" checked onchange="renderMillMatrix()" style="accent-color:var(--blue);width:14px;height:14px"> Produkty dodatkowe</label>
+          <br style="width:100%">
+          <label style="font-size:12px;color:var(--blue);cursor:pointer;display:flex;align-items:center;gap:5px;font-weight:500">
+            <input type="checkbox" id="mill-all-grp" checked onchange="millSelectAllGrp(this.checked)" style="accent-color:var(--blue)">
+            Zaznacz/odznacz wszystkie grupy
+          </label>
+        </div>
+      </div>
+
+      <!-- Row 5: Cecha (szukaj) -->
+      <div style="display:grid;grid-template-columns:220px 1fr;border-bottom:1px solid var(--border)">
+        <div style="padding:14px 20px;background:#f8f9fb;border-right:1px solid var(--border);font-size:13px;font-weight:600;color:var(--navy);display:flex;align-items:center">
+          Cecha
+        </div>
+        <div style="padding:12px 20px;display:flex;align-items:center">
+          <input id="mill-search" placeholder="Wyszukaj cechę…" oninput="renderMillMatrix()" style="padding:7px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:DM Sans,sans-serif;width:320px;outline:none">
+        </div>
+      </div>
+
+      <!-- Row 6: Cechy korzystne/mniej korzystne -->
+      <div style="display:grid;grid-template-columns:220px 1fr">
+        <div style="padding:14px 20px;background:#f8f9fb;border-right:1px solid var(--border);font-size:13px;font-weight:600;color:var(--navy);display:flex;align-items:center;line-height:1.3">
+          Cechy korzystniejsze /<br>mniej korzystne
+        </div>
+        <div style="padding:14px 20px;display:flex;align-items:center;gap:24px">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="mill-bad" checked onchange="renderMillMatrix()" style="accent-color:#cc0000;width:14px;height:14px">
+            <span style="color:#cc0000;font-weight:600">Mniej korzystne</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="mill-good" checked onchange="renderMillMatrix()" style="accent-color:#007a3d;width:14px;height:14px">
+            <span style="color:#007a3d;font-weight:600">Korzystniejsze</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTS TABLE — dokładny układ Millennium -->
+    <div style="margin-top:20px;background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:20px">
+      <!-- Nagłówek z nazwą banku i datą — jak w Millennium -->
+      <div id="mill-selected-header" style="display:grid;border-bottom:2px solid var(--border)"></div>
+      <!-- Wiersze -->
+      <div id="mill-rows"></div>
+    </div>
+
+    <!-- MOJE ODROCZENIA -->
+    <div class="card">
+      <div class="card-title">📅 Moje odroczenia płatności</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+        <div style="background:var(--bg);border-radius:10px;padding:14px">
+          <div style="font-size:12px;color:var(--muted)">Zamówienie #2024-0312</div>
+          <div style="font-size:16px;font-weight:700;color:var(--navy);margin:4px 0">12 400 zł</div>
+          <div style="font-size:12px;color:var(--muted)">Nawóz CANWIL 27N · 14 t</div>
+          <div style="background:#d1fae5;color:#065f46;font-size:11px;padding:4px 8px;border-radius:6px;margin-top:8px;font-weight:600">Termin płatności: 31.08.2025</div>
+        </div>
+        <div style="background:var(--bg);border-radius:10px;padding:14px">
+          <div style="font-size:12px;color:var(--muted)">Zamówienie #2024-0298</div>
+          <div style="font-size:16px;font-weight:700;color:var(--navy);margin:4px 0">8 800 zł</div>
+          <div style="font-size:12px;color:var(--muted)">Siarczan amonu · 8 t</div>
+          <div style="background:#fef3c7;color:#92400e;font-size:11px;padding:4px 8px;border-radius:6px;margin-top:8px;font-weight:600">Termin płatności: 15.09.2025</div>
+        </div>
+        <div style="background:var(--bg);border-radius:10px;padding:14px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer">
+          <div style="text-align:center;color:var(--muted)">
+            <div style="font-size:28px;margin-bottom:6px">+</div>
+            <div style="font-size:13px">Nowe odroczenie</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MARKETPLACE ============ -->
+  <div id="page-marketplace" class="page">
+
+    <!-- Hero Total Farm Solution -->
+    <div style="background:linear-gradient(135deg,var(--navy) 0%,#1a4a3a 100%);border-radius:14px;padding:24px 28px;margin-bottom:20px;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:20px">
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:rgba(255,255,255,.5);margin-bottom:6px;text-transform:uppercase">Total Farm Solution</div>
+        <div style="font-size:22px;font-weight:700;margin-bottom:6px">Marketplace Grupy Azoty</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.7);max-width:520px">Jeden punkt kontaktu dla całego cyklu życia Twojego gospodarstwa. Nawozy, ochrona roślin, finanse, technologie i usługi — wszystko w jednym ekosystemie z inteligentną porównywarką i korzyściami koszyka.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0">
+        <div style="background:rgba(255,255,255,.12);border-radius:10px;padding:10px 16px;text-align:center">
+          <div style="font-size:20px;font-weight:700">+2,4×</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.6)">Mnożnik punktów<br>za pełny koszyk</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inteligentna Porównywarka — banner -->
+    <div style="background:#fff;border:1.5px solid #00b894;border-radius:12px;padding:14px 20px;margin-bottom:20px;display:flex;align-items:center;gap:14px">
+      <div style="width:40px;height:40px;background:#e6faf5;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🔮</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:var(--navy)">Inteligentna Porównywarka — Synergia Koszyka</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">Produkty partnerskie GA odblokowują niższe ceny w innych kategoriach: <strong style="color:#00b894">paliwa −8%</strong>, <strong style="color:#00b894">ubezpieczenia −12%</strong>, <strong style="color:#00b894">internet rolniczy gratis</strong>. Skala zakupów definiuje poziom KAM.</div>
+      </div>
+      <button class="btn btn-sm" style="background:#00b894;color:#fff;white-space:nowrap">Sprawdź synergię →</button>
+    </div>
+
+    <!-- Kategorie -->
+    <div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap">
+      <span class="chip chip-active" onclick="filterProducts('all',this)">🏪 Wszystkie</span>
+      <span class="chip chip-inactive" onclick="filterProducts('nawozy',this)">🌿 Nawozy GA</span>
+      <span class="chip chip-inactive" onclick="filterProducts('nasiona',this)">🌱 Nasiona & ŚOR</span>
+      <span class="chip chip-inactive" onclick="filterProducts('tech',this)">🚁 Technologie</span>
+      <span class="chip chip-inactive" onclick="filterProducts('finanse',this)">💳 Finanse</span>
+      <span class="chip chip-inactive" onclick="filterProducts('energia',this)">⚡ Energia & OZE</span>
+      <span class="chip chip-inactive" onclick="filterProducts('promo',this)">⭐ Pakiety</span>
+    </div>
+
+    <div class="search-bar" style="margin-bottom:20px">
+      <input class="search-input" placeholder="🔍 Wyszukaj produkt lub usługę (np. RSM, dron, leasing, ubezpieczenie…)">
+      <button class="btn btn-primary">Szukaj</button>
+    </div>
+
+    <!-- Produkty GA — Sekcja 1 -->
+    <div style="font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px">🌿 Nawozy & Środki Produkcji GA</div>
+    <div class="product-grid" id="product-grid" style="margin-bottom:28px">
+      <div class="product-card" data-cat="nawozy">
+        <div class="product-img" style="background:#f0fdf4">🌿</div>
+        <span class="product-tag tag-azoty">Azoty Puławy</span>
+        <div class="product-name">Saletra Amonowa 34N</div>
+        <div class="product-cat">Azot · Nawóz mineralny</div>
+        <div style="font-size:11px;color:var(--muted);margin:4px 0">Skład: N 34% (NH₄+NO₃). Idealna na wiosnę.</div>
+        <div class="product-price">1 240 zł <span class="product-unit">/ tona</span></div>
+        <div style="font-size:10px;color:#00b894;margin-bottom:6px">🔗 Kup z RSM® → oszczędzasz 80 pkt</div>
+        <button class="btn btn-primary btn-sm" style="width:100%">Dodaj do koszyka</button>
+      </div>
+      <div class="product-card" data-cat="nawozy promo">
+        <div class="product-img" style="background:#fff7ed">🧪</div>
+        <span class="product-tag tag-azoty">Azoty Puławy</span>
+        <span class="product-tag tag-promo">−10% Promocja</span>
+        <div class="product-name">CANWIL 27N</div>
+        <div class="product-cat">Azotowo-wapniowy · Popularny</div>
+        <div style="font-size:11px;color:var(--muted);margin:4px 0">N 27%, CaO 8%. Poprawia pH gleby przy nawożeniu.</div>
+        <div class="product-price">980 zł <span class="product-unit">/ tona</span></div>
+        <div style="font-size:10px;color:#00b894;margin-bottom:6px">Odroczone płatności — termin po żniwach</div>
+        <button class="btn btn-primary btn-sm" style="width:100%">Dodaj do koszyka</button>
+      </div>
+      <div class="product-card" data-cat="nawozy">
+        <div class="product-img" style="background:#f0f9ff">💧</div>
+        <span class="product-tag tag-azoty">Azoty Puławy</span>
+        <div class="product-name">RSM® 32%</div>
+        <div class="product-cat">Roztwór saletrzano-mocznikowy</div>
+        <div style="font-size:11px;color:var(--muted);margin:4px 0">N 32%, ciecz. Precyzyjna aplikacja, mniejszy drift.</div>
+        <div class="product-price">1 120 zł <span class="product-unit">/ tona</span></div>
+        <div style="font-size:10px;color:#00b894;margin-bottom:6px">Mapa VRA dołączona gratis przy zam. 5+ t</div>
+        <button class="btn btn-primary btn-sm" style="width:100%">Dodaj do koszyka</button>
+      </div>
+      <div class="product-card" data-cat="nawozy">
+        <div class="product-img" style="background:#fef3c7">🌻</div>
+        <span class="product-tag tag-azoty">Azoty Puławy</span>
+        <div class="product-name">Mocznik z inhibitorem NBPT</div>
+        <div class="product-cat">Azot wolnodziałający · Premium</div>
+        <div style="font-size:11px;color:var(--muted);margin:4px 0">N 46%, inhibitor ureazy NBPT. Zmniejsza emisję NH₃.</div>
+        <div class="product-price">1 580 zł <span class="product-unit">/ tona</span></div>
+        <div style="font-size:10px;color:#00b894;margin-bottom:6px">Certyfikat węglowy: –0,3t CO₂e/ha</div>
+        <button class="btn btn-primary btn-sm" style="width:100%">Dodaj do koszyka</button>
+      </div>
+      <div class="product-card" data-cat="nasiona">
+        <div class="product-img" style="background:#fdf4ff">🌱</div>
+        <span class="product-tag tag-partner">Partner · KWS</span>
+        <div class="product-name">Pszenica ozima KWS Keitum</div>
+        <div class="product-cat">Nasiona · Materiał siewny C/1</div>
+        <div style="font-size:11px;color:var(--muted);margin:4px 0">Wysoka odporność na fuzariozę. Dobór do gleby automatyczny z profilu.</div>
+        <div class="product-price">320 zł <span class="product-unit">/ 50 kg</span></div>
+        <button class="btn btn-outline btn-sm" style="width:100%">Dopasuj do mojej gleby</button>
+      </div>
+      <div class="product-card" data-cat="nasiona">
+        <div class="product-img" style="background:#f0fdf4">🛡️</div>
+        <span class="product-tag tag-partner">Partner · Bayer</span>
+        <div class="product-name">Roundup PowerFlex 480 SL</div>
+        <div class="product-cat">Herbicyd totalny · ŚOR</div>
+        <div style="font-size:11px;color:var(--muted);margin:4px 0">Zintegrowany z modelem chorób na Pulpicie.</div>
+        <div class="product-price">98 zł <span class="product-unit">/ litr</span></div>
+        <button class="btn btn-outline btn-sm" style="width:100%">Sprawdź model oprysku</button>
+      </div>
+    </div>
+
+    <!-- Technologie -->
+    <div style="font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px">🚁 Technologie Rolnictwa Precyzyjnego</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px">
+      <div class="card" data-cat="tech" style="padding:16px">
+        <div style="font-size:24px;margin-bottom:8px">🚁</div>
+        <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:4px">Mapowanie NDVI/NDWI dronem</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Wielospektralne mapowanie pola z powietrza. Generowanie map VRA do rozsiewaczy i opryskiwaczy bezprzewodowo. Partner: SatAgro.</div>
+        <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px">od 45 zł/ha</div>
+        <button class="btn btn-primary btn-sm" style="width:100%">Zamów mapowanie</button>
+      </div>
+      <div class="card" data-cat="tech" style="padding:16px">
+        <div style="font-size:24px;margin-bottom:8px">🤖</div>
+        <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:4px">Oprysk dronowy precyzyjny</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">DJI Matrice AGRI. Minimalizacja znoszenia, aplikacja z niskiej wysokości. Robot odchwaszczający jako alternatywa dla herbicydów.</div>
+        <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px">od 80 zł/ha</div>
+        <button class="btn btn-primary btn-sm" style="width:100%">Zaplanuj zlecenie</button>
+      </div>
+      <div class="card" data-cat="tech" style="padding:16px;border:1.5px solid #f59e0b">
+        <div style="font-size:24px;margin-bottom:8px">🔬</div>
+        <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:4px">Digital Twin — Cyfrowy Bliźniak Pola</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Wirtualny model pola. Symulacja sezonu — testuj dawki nawożenia i terminy siewu bez ryzyka przed wdrożeniem. Wynik: ROI live.</div>
+        <span class="product-tag tag-promo">Nowość 2026</span>
+        <div style="font-size:13px;font-weight:700;color:var(--navy);margin:8px 0">120 zł/ha/sezon</div>
+        <button class="btn btn-primary btn-sm" style="width:100%;background:var(--accent2)">Uruchom symulację</button>
+      </div>
+    </div>
+
+    <!-- Finanse & Ubezpieczenia w Marketplace -->
+    <div style="font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px">💳 Finanse, Ubezpieczenia & Leasing</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px">
+      <div class="card" data-cat="finanse" style="padding:16px">
+        <div style="font-size:24px;margin-bottom:8px">💰</div>
+        <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:4px">Kredyt Rolniczy Obrotowy</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px">BNP Paribas / BGŻ · Oprocentowanie od 2,9% rocznie. Odroczenie do 180 dni — powiązane z terminem żniw.</div>
+        <div style="background:#d1fae5;color:#065f46;font-size:11px;padding:4px 8px;border-radius:6px;margin:8px 0;font-weight:600">Synergia: odblokuje rabat −8% na paliwa</div>
+        <button class="btn btn-primary btn-sm" style="width:100%">Porównaj oferty →</button>
+      </div>
+      <div class="card" data-cat="finanse" style="padding:16px">
+        <div style="font-size:24px;margin-bottom:8px">🌦️</div>
+        <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:4px">Ubezpieczenie Parametryczne</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Wypłata &lt;72h bez likwidatora. Wyzwalacz: NDVI / opady / temperatura. Dane satelitarne 10–30m. Dotacja ARiMR do 65%.</div>
+        <div style="background:#fef3c7;color:#92400e;font-size:11px;padding:4px 8px;border-radius:6px;margin:8px 0;font-weight:600">Synergia: odblokuje certyfikat ESG gratis</div>
+        <button class="btn btn-primary btn-sm" style="width:100%">Sprawdź składkę</button>
+      </div>
+      <div class="card" data-cat="finanse" style="padding:16px">
+        <div style="font-size:24px;margin-bottom:8px">🚜</div>
+        <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:4px">Leasing Pay-Per-Use</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px">AGCO Finance / Rabobank. Rata uzależniona od obrobionego areału (telemetria). Rolnik płaci za realną pracę, nie za garaż.</div>
+        <div style="background:#e0f2fe;color:#0c4a6e;font-size:11px;padding:4px 8px;border-radius:6px;margin:8px 0;font-weight:600">Synergia: odblokuje Predictive Maintenance</div>
+        <button class="btn btn-primary btn-sm" style="width:100%">Kalkulator raty</button>
+      </div>
+    </div>
+
+    <!-- Energia & OZE -->
+    <div style="font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px">⚡ Energia, OZE & Utilities</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px">
+      <div class="card" data-cat="energia" style="padding:16px">
+        <div style="font-size:24px;margin-bottom:8px">☀️</div>
+        <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:4px">Fotowoltaika + EMS</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">System zarządzania energią (EMS) z algorytmami predykcyjnymi. Automatyczna sprzedaż nadwyżek przy ujemnych cenach. Dofinansowanie ARiMR 2026 do 80%.</div>
+        <button class="btn btn-outline btn-sm" style="width:100%">Sprawdź dotacje ARiMR</button>
+      </div>
+      <div class="card" data-cat="energia" style="padding:16px">
+        <div style="font-size:24px;margin-bottom:8px">📡</div>
+        <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:4px">Internet & Telefon Rolniczy</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Dedykowane pakiety IoT dla rolnictwa. Łączność dla sensorów glebowych, stacji pogodowych, telemetrii maszyn i robotów polowych.</div>
+        <div style="background:#d1fae5;color:#065f46;font-size:11px;padding:4px 8px;border-radius:6px;margin-bottom:8px;font-weight:600">Gratis przy kredycie GA ≥ 50 000 zł</div>
+        <button class="btn btn-outline btn-sm" style="width:100%">Wybierz pakiet</button>
+      </div>
+      <div class="card" data-cat="energia" style="padding:16px">
+        <div style="font-size:24px;margin-bottom:8px">⛽</div>
+        <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:4px">Paliwa Rolnicze</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Oferty paliw ON z dostawą do gospodarstwa. Ceny aktualizowane co 24h z Platts. Kontrakt terminowy na zbliżający się sezon.</div>
+        <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px">5,42 zł/l ON (dziś)</div>
+        <button class="btn btn-outline btn-sm" style="width:100%">Zamów dostawę</button>
+      </div>
+    </div>
+
+    <!-- Pakiety sezonowe -->
+    <div style="font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px">⭐ Pakiety Sezonowe — Pełny Koszyk GA</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+      <div class="card" data-cat="promo" style="padding:20px;border:2px solid var(--accent2)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <div style="font-size:28px">🌾</div>
+          <div>
+            <div style="font-size:15px;font-weight:700;color:var(--navy)">Pakiet WIOSNA 2026</div>
+            <div style="font-size:11px;color:var(--muted)">Nawóz + Ochrona + Finanse + KAM</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:12px">
+          <div style="font-size:12px;color:var(--text)">✅ Saletra 34N 5t + RSM® 32% 3t</div>
+          <div style="font-size:12px;color:var(--text)">✅ Oprysk dronowy NDVI 1× gratis</div>
+          <div style="font-size:12px;color:var(--text)">✅ Ubezpieczenie parametryczne 40ha</div>
+          <div style="font-size:12px;color:var(--text)">✅ Kredyt 0% na 90 dni</div>
+          <div style="font-size:12px;color:var(--text)">✅ KAM Video konsultacja 2×</div>
+        </div>
+        <div style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:10px">od 4 200 zł/ha <span style="font-size:12px;color:var(--muted);font-weight:400">· mnożnik ×2,4 pkt</span></div>
+        <button class="btn btn-primary" style="width:100%;background:var(--accent2)">Skomponuj pakiet →</button>
+      </div>
+      <div class="card" data-cat="promo" style="padding:20px;border:2px solid var(--blue)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <div style="font-size:28px">🚀</div>
+          <div>
+            <div style="font-size:15px;font-weight:700;color:var(--navy)">Pakiet TECH PRO 2026</div>
+            <div style="font-size:11px;color:var(--muted)">Telemetria + Digital Twin + Leasing PPU</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:12px">
+          <div style="font-size:12px;color:var(--text)">✅ Digital Twin — symulacja sezonu</div>
+          <div style="font-size:12px;color:var(--text)">✅ Leasing Pay-Per-Use ciągnik/kombajn</div>
+          <div style="font-size:12px;color:var(--text)">✅ Telemetria + Predictive Maintenance</div>
+          <div style="font-size:12px;color:var(--text)">✅ Blockchain traceability — kody QR</div>
+          <div style="font-size:12px;color:var(--text)">✅ Dostęp AI Co-Pilot „Norm"</div>
+        </div>
+        <div style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:10px">od 6 800 zł/ha <span style="font-size:12px;color:var(--muted);font-weight:400">· mnożnik ×3,0 pkt</span></div>
+        <button class="btn btn-primary" style="width:100%">Skonfiguruj pakiet →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ LOYALTY ============ -->
+  <div id="page-loyalty" class="page">
+    <div class="loyalty-hero">
+      <div>
+        <div style="font-size:13px;opacity:.7;margin-bottom:4px">Program Lojalności Azoty Farmer</div>
+        <div class="loyalty-points">3 820</div>
+        <div class="loyalty-label">punktów · Poziom ZŁOTY 🥇</div>
+        <div style="margin-top:14px;font-size:13px;opacity:.8">Do poziomu PLATYNOWEGO brakuje Ci 2 180 pkt</div>
+        <div class="progress-bar-wrap" style="background:rgba(255,255,255,.2);margin-top:8px;width:240px">
+          <div class="progress-bar" style="width:64%;background:linear-gradient(90deg,#ffd700,#fff)"></div>
+        </div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:11px;opacity:.6;margin-bottom:8px">Ten sezon</div>
+        <div style="font-size:32px;font-weight:700">+480 pkt</div>
+        <div style="font-size:12px;opacity:.7;margin-top:4px">Zamówienia · Ubezpieczenia · Polecenia</div>
+      </div>
+    </div>
+
+    <div class="section-title">🎁 Dostępne nagrody</div>
+    <div class="reward-grid">
+      <div class="reward-card">
+        <div class="reward-icon">⛽</div>
+        <div class="reward-name">Voucher paliwowy</div>
+        <div class="reward-pts">Doładowanie na stację LOTOS/Orlen</div>
+        <div class="reward-cost">500 pkt = 50 zł</div>
+        <button class="btn btn-primary btn-sm" style="margin-top:12px;width:100%">Wymień punkty</button>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">🏦</div>
+        <div class="reward-name">Obniżka kredytu</div>
+        <div class="reward-pts">Redukcja oprocentowania o 0,5%</div>
+        <div class="reward-cost">1 200 pkt</div>
+        <button class="btn btn-primary btn-sm" style="margin-top:12px;width:100%">Wymień punkty</button>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">🛡️</div>
+        <div class="reward-name">Rabat na ubezpieczenie</div>
+        <div class="reward-pts">−15% na polisę upraw</div>
+        <div class="reward-cost">800 pkt</div>
+        <button class="btn btn-primary btn-sm" style="margin-top:12px;width:100%">Wymień punkty</button>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">🌿</div>
+        <div class="reward-name">Bezpłatna analiza gleby</div>
+        <div class="reward-pts">Próbka + raport agronoma</div>
+        <div class="reward-cost">600 pkt</div>
+        <button class="btn btn-outline btn-sm" style="margin-top:12px;width:100%">Wymień punkty</button>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">🌾</div>
+        <div class="reward-name">Rabat na nawozy</div>
+        <div class="reward-pts">−5% na następne zamówienie</div>
+        <div class="reward-cost">300 pkt</div>
+        <button class="btn btn-outline btn-sm" style="margin-top:12px;width:100%">Wymień punkty</button>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">🚁</div>
+        <div class="reward-name">Skan dronem (1 pole)</div>
+        <div class="reward-pts">Mapa NDVI + raport</div>
+        <div class="reward-cost">2 500 pkt</div>
+        <button class="btn btn-outline btn-sm" style="margin-top:12px;width:100%;color:var(--muted);border-color:var(--border)">Niewystarczające pkt</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PROFILE ============ -->
+  <div id="page-profile" class="page">
+    <div style="background:linear-gradient(135deg,var(--navy) 0%,#1a4a3a 100%);border-radius:14px;padding:24px 28px;margin-bottom:20px;color:#fff;display:flex;align-items:center;gap:20px">
+      <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#2563c8,#00b894);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;flex-shrink:0">JK</div>
+      <div style="flex:1">
+        <div style="font-size:20px;font-weight:700">Jan Kowalski</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.7);margin-top:2px">Nr gospodarstwa (EP): 1234567 · 85 ha · Puławy, lubelskie</div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <span style="background:rgba(255,255,255,.15);border-radius:20px;padding:3px 10px;font-size:11px">🏆 Poziom ZŁOTY</span>
+          <span style="background:rgba(0,184,148,.3);border-radius:20px;padding:3px 10px;font-size:11px">✅ Zweryfikowany rolnik</span>
+          <span style="background:rgba(245,158,11,.3);border-radius:20px;padding:3px 10px;font-size:11px">🌱 ESG: Certyfikat w toku</span>
+        </div>
+      </div>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3)">✏️ Edytuj profil</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <!-- Infrastruktura maszynowa -->
+      <div class="card">
+        <div class="card-title">🚜 Infrastruktura Maszynowa</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg);border-radius:8px">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--navy)">John Deere 6R 150</div>
+              <div style="font-size:11px;color:var(--muted)">Ciągnik · 2022 · ISOBUS ✓ · DataConnect API</div>
+            </div>
+            <span style="background:#d1fae5;color:#065f46;font-size:10px;padding:2px 8px;border-radius:6px;font-weight:600">Aktywny</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg);border-radius:8px">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--navy)">Claas Lexion 770</div>
+              <div style="font-size:11px;color:var(--muted)">Kombajn · 2019 · Telemetria · GPS Autopilot</div>
+            </div>
+            <span style="background:#d1fae5;color:#065f46;font-size:10px;padding:2px 8px;border-radius:6px;font-weight:600">Aktywny</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg);border-radius:8px">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--navy)">Horsch Maestro SW 12</div>
+              <div style="font-size:11px;color:var(--muted)">Siewnik punktowy · 2021 · ISOBUS VRA ✓</div>
+            </div>
+            <span style="background:#d1fae5;color:#065f46;font-size:10px;padding:2px 8px;border-radius:6px;font-weight:600">Aktywny</span>
+          </div>
+          <button class="btn btn-outline btn-sm">+ Dodaj maszynę / synchronizuj API</button>
+        </div>
+      </div>
+
+      <!-- Zasoby glebowe -->
+      <div class="card">
+        <div class="card-title">🌍 Zasoby Glebowe & Historia Plonów</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center">
+            <div style="font-size:18px;font-weight:700;color:var(--navy)">6,4</div>
+            <div style="font-size:11px;color:var(--muted)">pH średnie</div>
+          </div>
+          <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center">
+            <div style="font-size:18px;font-weight:700;color:var(--navy)">1,8%</div>
+            <div style="font-size:11px;color:var(--muted)">Próchnica</div>
+          </div>
+          <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center">
+            <div style="font-size:18px;font-weight:700;color:var(--accent)">112 kg/ha</div>
+            <div style="font-size:11px;color:var(--muted)">P₂O₅ zasobność</div>
+          </div>
+          <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center">
+            <div style="font-size:18px;font-weight:700;color:var(--accent2)">8,2 t/ha</div>
+            <div style="font-size:11px;color:var(--muted)">Plon pszenica 2025</div>
+          </div>
+        </div>
+        <button class="btn btn-outline btn-sm">📊 Historia plonów 5 lat / Wgraj mapy gleby</button>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px">
+      <!-- Status prawno-finansowy -->
+      <div class="card">
+        <div class="card-title">📋 Status Prawno-Finansowy</div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <div style="font-size:12px;display:flex;justify-content:space-between"><span style="color:var(--muted)">Forma prawna</span><span style="font-weight:600">Rolnik indywidualny</span></div>
+          <div style="font-size:12px;display:flex;justify-content:space-between"><span style="color:var(--muted)">Własność/dzierżawa</span><span style="font-weight:600">60 / 25 ha</span></div>
+          <div style="font-size:12px;display:flex;justify-content:space-between"><span style="color:var(--muted)">KRUS</span><span style="font-weight:600;color:#00b894">Ubezpieczony ✓</span></div>
+          <div style="font-size:12px;display:flex;justify-content:space-between"><span style="color:var(--muted)">Aktywna linia kredytowa</span><span style="font-weight:600">150 000 zł</span></div>
+          <div style="font-size:12px;display:flex;justify-content:space-between"><span style="color:var(--muted)">KSeF (od 1.04.2026)</span><span style="font-weight:600;color:var(--accent2)">Konfiguracja ⚠️</span></div>
+        </div>
+      </div>
+
+      <!-- Profil energetyczny -->
+      <div class="card">
+        <div class="card-title">⚡ Profil Energetyczny & OZE</div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <div style="font-size:12px;display:flex;justify-content:space-between"><span style="color:var(--muted)">Fotowoltaika</span><span style="font-weight:600;color:#00b894">12 kWp ✓</span></div>
+          <div style="font-size:12px;display:flex;justify-content:space-between"><span style="color:var(--muted)">Biogazownia</span><span style="font-weight:600;color:var(--muted)">Brak</span></div>
+          <div style="font-size:12px;display:flex;justify-content:space-between"><span style="color:var(--muted)">Zużycie/rok</span><span style="font-weight:600">28 000 kWh</span></div>
+          <div style="font-size:12px;display:flex;justify-content:space-between"><span style="color:var(--muted)">Nadwyżka do sprzedaży</span><span style="font-weight:600;color:#00b894">4 200 kWh</span></div>
+          <div style="font-size:12px;display:flex;justify-content:space-between"><span style="color:var(--muted)">EMS (smart)</span><span style="font-weight:600;color:var(--accent2)">Planowany</span></div>
+        </div>
+      </div>
+
+      <!-- Zasoby ludzkie -->
+      <div class="card">
+        <div class="card-title">👥 Zasoby Ludzkie & Sukcesja 3.0</div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <div style="font-size:12px;display:flex;justify-content:space-between"><span style="color:var(--muted)">Pracownicy stali</span><span style="font-weight:600">2</span></div>
+          <div style="font-size:12px;display:flex;justify-content:space-between"><span style="color:var(--muted)">Pracownicy sezonowi</span><span style="font-weight:600">6</span></div>
+          <div style="font-size:12px;display:flex;justify-content:space-between"><span style="color:var(--muted)">Szkolenia BHP (2025)</span><span style="font-weight:600;color:#00b894">Zaliczone ✓</span></div>
+          <div style="font-size:12px;display:flex;justify-content:space-between"><span style="color:var(--muted)">Sukcesja</span><span style="font-weight:600;color:var(--accent2)">W planowaniu</span></div>
+        </div>
+        <button class="btn btn-outline btn-sm" style="margin-top:10px;width:100%">📜 Uruchom Sukcesję 3.0</button>
+      </div>
+    </div>
+
+    <!-- Obszar Społeczny 4.2 -->
+    <div style="font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px;margin-top:4px">4.2 Obszar Społeczny — Filar Społeczno-Psychologiczny</div>
+
+    <!-- A. Pakiet Bezpiecznego Rolnika -->
+    <div class="card" style="border-left:4px solid var(--accent);margin-bottom:16px">
+      <div class="card-title">🏥 A. Pakiet Bezpiecznego Rolnika</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6">Platforma integruje usługi telemedyczne — szybki dostęp do konsultacji lekarskich bez opuszczania gospodarstwa. Szczególnie istotne przy chorobach zawodowych: borelioza, schorzenia układu krążenia i kręgosłupa. Kampanie KRUS promujące badania profilaktyczne są zintegrowane z powiadomieniami na Pulpicie.</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+        <div style="background:var(--bg);border-radius:10px;padding:14px">
+          <div style="font-size:22px;margin-bottom:6px">🩺</div>
+          <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:4px">Telemedycyna</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.4">Konsultacje lekarskie bez wyjazdu z gospodarstwa. Borelioza, kardiologia, ortopedia.</div>
+          <button class="btn btn-sm btn-primary" style="margin-top:10px;width:100%">Umów wizytę</button>
+        </div>
+        <div style="background:var(--bg);border-radius:10px;padding:14px">
+          <div style="font-size:22px;margin-bottom:6px">📋</div>
+          <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:4px">Profilaktyka KRUS</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.4">Badania profilaktyczne finansowane z KRUS. Alerty i terminy zintegrowane z Pulpitem.</div>
+          <button class="btn btn-sm btn-outline" style="margin-top:10px;width:100%">Sprawdź terminy</button>
+        </div>
+        <div style="background:var(--bg);border-radius:10px;padding:14px">
+          <div style="font-size:22px;margin-bottom:6px">🤝</div>
+          <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:4px">Platforma wymiany</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.4">Budowanie relacji społecznych, wymiana doświadczeń. Redukuje izolację zawodową wsi.</div>
+          <button class="btn btn-sm btn-outline" style="margin-top:10px;width:100%">Dołącz do grupy</button>
+        </div>
+        <div style="background:var(--bg);border-radius:10px;padding:14px">
+          <div style="font-size:22px;margin-bottom:6px">📚</div>
+          <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:4px">Szkolenia BHP</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.4">Psychoedukacja i zarządzanie stresem finansowane z funduszy UE. Historia szkoleń w profilu.</div>
+          <button class="btn btn-sm btn-outline" style="margin-top:10px;width:100%">Przeglądaj</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- B. Wsparcie zdrowia psychicznego -->
+    <div class="card" style="border-left:4px solid #7c3aed;margin-bottom:16px">
+      <div class="card-title">🧠 B. Wsparcie Zdrowia Psychicznego</div>
+      <div style="background:#fdf4ff;border:1px solid #e9d5ff;border-radius:10px;padding:14px;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:600;color:#6b21a8;margin-bottom:4px">⚠️ Ważny kontekst społeczny</div>
+        <div style="font-size:12px;color:#7c3aed;line-height:1.6">Problem depresji i wypalenia zawodowego na wsi jest często bagatelizowany, mimo że <strong>rocznie w Polsce blisko 600 rolników odbiera sobie życie</strong>. Platforma GA aktywnie odpowiada na ten problem.</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+        <div style="background:var(--bg);border-radius:10px;padding:14px">
+          <div style="font-size:22px;margin-bottom:6px">🔒</div>
+          <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:4px">Anonimowe konsultacje</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.4">Dostęp do psychologów w sytuacjach kryzysowych: zadłużenie, klęski żywiołowe, utrata zbiorów. Pełna anonimowość.</div>
+          <button class="btn btn-sm btn-outline" style="margin-top:10px;width:100%;border-color:#7c3aed;color:#7c3aed">Anonimowa sesja</button>
+        </div>
+        <div style="background:var(--bg);border-radius:10px;padding:14px">
+          <div style="font-size:22px;margin-bottom:6px">🧘</div>
+          <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:4px">Programy antywypaleniowe</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.4">Wykłady psychoedukacyjne i techniki zarządzania stresem finansowane z funduszy unijnych.</div>
+          <button class="btn btn-sm btn-outline" style="margin-top:10px;width:100%;border-color:#7c3aed;color:#7c3aed">Programy UE</button>
+        </div>
+        <div style="background:var(--bg);border-radius:10px;padding:14px">
+          <div style="font-size:22px;margin-bottom:6px">👥</div>
+          <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:4px">Relacje społeczne</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.4">Platforma wymiany doświadczeń między rolnikami. Redukuje poczucie izolacji zawodowej, buduje sieci wsparcia.</div>
+          <button class="btn btn-sm btn-outline" style="margin-top:10px;width:100%;border-color:#7c3aed;color:#7c3aed">Dołącz do sieci</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- C. Sukcesja 3.0 -->
+    <div class="card" style="border-left:4px solid var(--accent2);margin-bottom:16px">
+      <div class="card-title">⚖️ C. Sukcesja 3.0 — Transfer Gospodarstwa</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6">Konflikt pokoleń (tzw. <strong>syndrom Boryny</strong>) jest jedną z głównych barier rozwoju gospodarstw w Polsce. Sukcesja 3.0 oferuje kompleksowe wsparcie prawne i technologiczne w procesie przekazywania własności i zarządzania aktywami.</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+        <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:14px">
+          <div style="font-size:22px;margin-bottom:6px">⚖️</div>
+          <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:4px">Mediacje prawne</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.4">Niezależni mediatorzy. Wycena majątku, planowanie długoterminowej strategii dla następców.</div>
+          <button class="btn btn-sm btn-outline" style="margin-top:10px;width:100%">Zaplanuj</button>
+        </div>
+        <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:14px">
+          <div style="font-size:22px;margin-bottom:6px">💻</div>
+          <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:4px">Aktywa cyfrowe</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.4">Transfer dostępu do kont, danych, subskrypcji platformy po przekazaniu gospodarstwa kolejnemu pokoleniu.</div>
+          <button class="btn btn-sm btn-outline" style="margin-top:10px;width:100%">Zarządzaj</button>
+        </div>
+        <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:14px">
+          <div style="font-size:22px;margin-bottom:6px">🧮</div>
+          <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:4px">Symulacja podziału</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.4">Narzędzie do symulacji podziału majątku między sukcesorów pracujących w gosp. i tych poza nim.</div>
+          <button class="btn btn-sm btn-outline" style="margin-top:10px;width:100%">Symuluj</button>
+        </div>
+        <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:14px">
+          <div style="font-size:22px;margin-bottom:6px">📜</div>
+          <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:4px">Dokumentacja prawna</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.4">Wsparcie w przygotowaniu aktów notarialnych, umów dzierżawy i dokumentów dziedziczenia.</div>
+          <button class="btn btn-sm btn-outline" style="margin-top:10px;width:100%">Dokumenty</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ BARTER 4.0 ============ -->
+  <div id="page-barter" class="page">
+    <div style="background:linear-gradient(135deg,#2d5016 0%,#4a7c20 100%);border-radius:14px;padding:24px 28px;margin-bottom:20px;color:#fff">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:rgba(255,255,255,.5);margin-bottom:6px;text-transform:uppercase">Giełda Płodów Rolnych</div>
+      <div style="font-size:22px;font-weight:700;margin-bottom:6px">Barter 4.0 — Płody za Nawozy</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.75);max-width:600px">Nowoczesne rozliczenia bezgotówkowe. System automatycznie przelicza wartość nawozów na tony zboża/rzepaku wg aktualnych notowań MATIF/CBOT. Platforma generuje dokumentację VAT/PIT. Blockchain Farm-to-Fork dla każdej partii.</div>
+    </div>
+
+    <!-- Notowania bieżące -->
+    <div class="card" style="margin-bottom:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div class="card-title" style="margin:0">📈 Bieżące Notowania (MATIF/CBOT)</div>
+        <div style="font-size:11px;color:var(--muted)">Aktualizacja: 10.03.2026 09:45</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px">
+        <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Pszenica MATIF</div>
+          <div style="font-size:18px;font-weight:700;color:var(--navy)">218 €/t</div>
+          <div style="font-size:11px;color:#16a34a">↑ +1,2%</div>
+        </div>
+        <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Kukurydza MATIF</div>
+          <div style="font-size:18px;font-weight:700;color:var(--navy)">189 €/t</div>
+          <div style="font-size:11px;color:#dc2626">↓ −0,5%</div>
+        </div>
+        <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Rzepak MATIF</div>
+          <div style="font-size:18px;font-weight:700;color:var(--navy)">468 €/t</div>
+          <div style="font-size:11px;color:#16a34a">↑ +2,1%</div>
+        </div>
+        <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Soja CBOT</div>
+          <div style="font-size:18px;font-weight:700;color:var(--navy)">362 €/t</div>
+          <div style="font-size:11px;color:#16a34a">↑ +0,8%</div>
+        </div>
+        <div style="background:var(--bg);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Żyto</div>
+          <div style="font-size:18px;font-weight:700;color:var(--navy)">148 €/t</div>
+          <div style="font-size:11px;color:#dc2626">↓ −0,3%</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <!-- Kalkulator Barterowy -->
+      <div class="card">
+        <div class="card-title">🧮 Kalkulator Barterowy</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--navy);display:block;margin-bottom:4px">Chcę kupić nawóz:</label>
+            <select style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:DM Sans,sans-serif;color:var(--navy)">
+              <option>Saletra Amonowa 34N — 5 t (6 200 zł)</option>
+              <option>RSM® 32% — 3 t (3 360 zł)</option>
+              <option>CANWIL 27N — 8 t (7 840 zł)</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--navy);display:block;margin-bottom:4px">Płacę płodami:</label>
+            <select style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:DM Sans,sans-serif;color:var(--navy)">
+              <option>Pszenica ozima</option>
+              <option>Kukurydza</option>
+              <option>Rzepak</option>
+              <option>Soja</option>
+            </select>
+          </div>
+          <div style="background:linear-gradient(135deg,#e6faf5,#d1fae5);border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Potrzebujesz dostarczyć:</div>
+            <div style="font-size:24px;font-weight:700;color:#065f46">28,4 t pszenicy</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">≈ 6 192 zł wg notowań MATIF (218 €/t)</div>
+          </div>
+          <button class="btn btn-primary" style="width:100%;background:#2d5016">✅ Zawrzyj umowę barterową</button>
+        </div>
+      </div>
+
+      <!-- Giełda ofert -->
+      <div class="card">
+        <div class="card-title">🌾 Aktywne Oferty Sprzedaży</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="background:var(--bg);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--navy)">Pszenica ozima · 120 t</div>
+              <div style="font-size:11px;color:var(--muted)">Rolnik: A.W. · Okręg Puławy · Klasa A</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:13px;font-weight:700;color:var(--navy)">215 €/t</div>
+              <button style="font-size:10px;background:var(--blue);color:#fff;border:none;border-radius:5px;padding:3px 8px;cursor:pointer;margin-top:3px">Kup</button>
+            </div>
+          </div>
+          <div style="background:var(--bg);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--navy)">Rzepak · 50 t</div>
+              <div style="font-size:11px;color:var(--muted)">Rolnik: T.K. · Okręg Lublin · Kod QR Farm-to-Fork ✓</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:13px;font-weight:700;color:var(--navy)">462 €/t</div>
+              <button style="font-size:10px;background:var(--blue);color:#fff;border:none;border-radius:5px;padding:3px 8px;cursor:pointer;margin-top:3px">Kup</button>
+            </div>
+          </div>
+          <div style="background:var(--bg);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--navy)">Kukurydza MON · 200 t</div>
+              <div style="font-size:11px;color:var(--muted)">Rolnik: J.N. · Okręg Zamość · Wilgotność 14%</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:13px;font-weight:700;color:var(--navy)">185 €/t</div>
+              <button style="font-size:10px;background:var(--blue);color:#fff;border:none;border-radius:5px;padding:3px 8px;cursor:pointer;margin-top:3px">Kup</button>
+            </div>
+          </div>
+          <button class="btn btn-outline btn-sm" style="width:100%">+ Wystaw moją ofertę sprzedaży</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Blockchain Traceability -->
+    <div class="card" style="border-left:4px solid var(--accent2)">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div style="font-size:28px">🔗</div>
+        <div>
+          <div class="card-title" style="margin:0">Blockchain Traceability — Smart Labels Farm-to-Fork</div>
+          <div style="font-size:12px;color:var(--muted)">Każda partia płodów rolnych posiada cyfrowy paszport z pełną historią nawożenia i śladu węglowego. Sprzedaż do sieci handlowych z premią "Premium/Sustainable".</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+        <div style="background:var(--bg);border-radius:8px;padding:12px;text-align:center">
+          <div style="font-size:20px;margin-bottom:4px">📱</div>
+          <div style="font-size:12px;font-weight:700;color:var(--navy)">Kod QR partii</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">Historia: nawożenie, opryski, ślad węglowy</div>
+        </div>
+        <div style="background:var(--bg);border-radius:8px;padding:12px;text-align:center">
+          <div style="font-size:20px;margin-bottom:4px">🏪</div>
+          <div style="font-size:12px;font-weight:700;color:var(--navy)">Marketplace B2B</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">Bezpośrednia sprzedaż do sieci i przetwórców</div>
+        </div>
+        <div style="background:var(--bg);border-radius:8px;padding:12px;text-align:center">
+          <div style="font-size:20px;margin-bottom:4px">💰</div>
+          <div style="font-size:12px;font-weight:700;color:var(--navy)">Premia Sustainable</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">+15–25% cena dla certyfikowanych partii ESG</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ESG ============ -->
+  <div id="page-esg" class="page">
+    <div style="background:linear-gradient(135deg,#0d3320 0%,#1a5c35 100%);border-radius:14px;padding:24px 28px;margin-bottom:20px;color:#fff">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:rgba(255,255,255,.5);margin-bottom:6px;text-transform:uppercase">ESG & Certyfikaty Węglowe</div>
+      <div style="font-size:22px;font-weight:700;margin-bottom:6px">Raportowanie & Handel Certyfikatami CO₂</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.75);max-width:600px">Zgodność z CSRD/ESRS, certyfikaty węglowe CRCF, automatyczne dane z telemetrii maszyn i profili polowych. Nowe źródło dochodu za praktyki regeneratywne — uprawa bezorkowa, międzyplony, precyzyjne nawożenie.</div>
+    </div>
+
+    <!-- Ślad węglowy -->
+    <div class="card" style="margin-bottom:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div class="card-title" style="margin:0">📊 Ślad Węglowy Twojego Gospodarstwa 2025</div>
+        <span style="background:#d1fae5;color:#065f46;font-size:11px;padding:4px 10px;border-radius:20px;font-weight:600">Dane automatyczne z telemetrii</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px">
+        <div style="background:#fff8f0;border:1px solid #fed7aa;border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Emisje nawozy</div>
+          <div style="font-size:20px;font-weight:700;color:#c2410c">2,4 t CO₂e/ha</div>
+        </div>
+        <div style="background:#fff8f0;border:1px solid #fed7aa;border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Emisje paliwa</div>
+          <div style="font-size:20px;font-weight:700;color:#c2410c">1,1 t CO₂e/ha</div>
+        </div>
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Sekwestracja gleba</div>
+          <div style="font-size:20px;font-weight:700;color:#16a34a">−0,8 t CO₂e/ha</div>
+        </div>
+        <div style="background:#e0f2fe;border:1px solid #bae6fd;border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Saldo netto</div>
+          <div style="font-size:20px;font-weight:700;color:#0c4a6e">2,7 t CO₂e/ha</div>
+        </div>
+      </div>
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px;display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:13px;color:#065f46;font-weight:600">💡 Zmień na mocznik z NBPT → obniżysz emisje o 0,3 t CO₂e/ha i wygenerujesz 25 certyfikatów rocznie</div>
+        <button class="btn btn-sm" style="background:#16a34a;color:#fff;white-space:nowrap">Zastosuj rekomendację</button>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <!-- Certyfikaty węglowe -->
+      <div class="card">
+        <div class="card-title">🌿 Moje Certyfikaty Węglowe (CRCF)</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
+          <div style="background:var(--bg);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--navy)">Uprawa bezorkowa 2024</div>
+              <div style="font-size:11px;color:var(--muted)">Status: Certyfikacja w toku · 85 ha</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:13px;font-weight:700;color:#16a34a">68 tCO₂e</div>
+              <div style="font-size:10px;color:var(--muted)">~2 040 zł</div>
+            </div>
+          </div>
+          <div style="background:var(--bg);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--navy)">Międzyplony 2024</div>
+              <div style="font-size:11px;color:var(--muted)">Status: Certyfikat wystawiony ✓</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:13px;font-weight:700;color:#16a34a">24 tCO₂e</div>
+              <div style="font-size:10px;color:var(--muted)">720 zł</div>
+            </div>
+          </div>
+          <div style="background:var(--bg);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--navy)">Precyzyjne nawożenie (mocznik NBPT)</div>
+              <div style="font-size:11px;color:var(--muted)">Status: Dane zbierane automatycznie</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:13px;font-weight:700;color:var(--accent2)">Est. 25 tCO₂e</div>
+              <div style="font-size:10px;color:var(--muted)">~750 zł</div>
+            </div>
+          </div>
+        </div>
+        <div style="background:linear-gradient(135deg,#e6faf5,#d1fae5);border-radius:10px;padding:12px;text-align:center;margin-bottom:10px">
+          <div style="font-size:12px;color:var(--muted)">Łączna wartość certyfikatów</div>
+          <div style="font-size:22px;font-weight:700;color:#065f46">3 510 zł / rok</div>
+        </div>
+        <button class="btn btn-primary" style="width:100%;background:#16a34a">🌿 Handluj certyfikatami</button>
+      </div>
+
+      <!-- Programy wsparcia & KSeF -->
+      <div class="card">
+        <div class="card-title">📋 Regulacje & Programy Wsparcia</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:10px 12px">
+            <div style="font-size:12px;font-weight:700;color:#92400e">⚠️ KSeF — 1 kwietnia 2026</div>
+            <div style="font-size:11px;color:#92400e;margin-top:2px">Obowiązek e-faktur dla większości podatników VAT. Limit przejściowy: faktury papierowe do 10 000 zł/mies. do końca 2026.</div>
+            <button class="btn btn-sm" style="background:#92400e;color:#fff;margin-top:6px">Skonfiguruj teraz</button>
+          </div>
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 12px">
+            <div style="font-size:12px;font-weight:700;color:#065f46">✅ Portal Rolnika ARiMR — II kw. 2026</div>
+            <div style="font-size:11px;color:#065f46;margin-top:2px">Budżet 160 mln zł (KPO). 20 e-usług w jednym oknie. Dokumentacja ekoschematy przez zdjęcia geotagowane.</div>
+          </div>
+          <div style="background:#e0f2fe;border:1px solid #bae6fd;border-radius:8px;padding:10px 12px">
+            <div style="font-size:12px;font-weight:700;color:#0c4a6e">💶 ARiMR Rolnictwo 4.0 — nabory jesień 2026</div>
+            <div style="font-size:11px;color:#0c4a6e;margin-top:2px">Refundacja do 80% dla młodych rolników na systemy IT i czujniki emisji. OZE: dofinansowanie do 80%.</div>
+            <button class="btn btn-sm" style="background:#0c4a6e;color:#fff;margin-top:6px">Sprawdź kwalifikowalność</button>
+          </div>
+          <div style="background:#fdf4ff;border:1px solid #e9d5ff;border-radius:8px;padding:10px 12px">
+            <div style="font-size:12px;font-weight:700;color:#6b21a8">🌍 CSRD / ESRS — Raportowanie ESG</div>
+            <div style="font-size:11px;color:#6b21a8;margin-top:2px">Warunek dostępu do rynków zbytu i finansowania. Platforma generuje raporty automatycznie z danych telemetrycznych.</div>
+            <button class="btn btn-sm" style="background:#6b21a8;color:#fff;margin-top:6px">Wygeneruj raport ESG</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ADVISOR / KAM ============ -->
+  <div id="page-advisor" class="page">
+    <div class="kam-hero">
+      <h2>🌿 Doradca KAM — System KAM 3-Poziomowy</h2>
+      <p>Jeden punkt kontaktu dla Twojego gospodarstwa. Skala transakcji definiuje poziom wsparcia — od Bota AI po osobistego opiekuna regionalnego.</p>
+    </div>
+
+    <!-- KAM 3-poziomowy -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px">
+      <div style="background:#fff;border:2px solid var(--border);border-radius:12px;padding:18px;text-align:center">
+        <div style="font-size:30px;margin-bottom:8px">🤖</div>
+        <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:4px">I Poziom — Bot AI</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Autonomiczny asystent AI. Rutynowe pytania o produkty, zamówienia, ceny, procedury. Dostępny 24/7 bez czekania.</div>
+        <span style="background:#e0f2fe;color:#0c4a6e;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600">Wszystkie zakupy</span>
+      </div>
+      <div style="background:#fff;border:2px solid var(--blue);border-radius:12px;padding:18px;text-align:center">
+        <div style="font-size:30px;margin-bottom:8px">📹</div>
+        <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:4px">II Poziom — Video KAM</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Merytoryczne konsultacje z agronomem lub ekspertem technicznym w czasie rzeczywistym. Video chat priorytetowy.</div>
+        <span style="background:#dbeafe;color:#1e40af;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600">Zakupy ≥ 20 000 zł</span>
+      </div>
+      <div style="background:#fff;border:2px solid var(--accent);border-radius:12px;padding:18px;text-align:center">
+        <div style="font-size:30px;margin-bottom:8px">🤝</div>
+        <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:4px">III Poziom — Osobisty KAM</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Wizyta dedykowanego opiekuna regionu w Twoim gospodarstwie. Dla projektów strategicznych i partnerstwa długoterminowego.</div>
+        <span style="background:#d1fae5;color:#065f46;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600">Partnerzy strategiczni</span>
+      </div>
+    </div>
+
+    <div class="section-title">👨‍🌾 Twoi Doradcy Regionalni (KAM)</div>
+    <div class="advisors-grid">
+      <div class="advisor-card">
+        <div class="advisor-avatar" style="background:#d1fae5;font-size:28px">👨‍🌾</div>
+        <div class="advisor-name">Paweł Kowalczyk</div>
+        <div class="advisor-role">KAM / Agronom · Nawożenie azotowe</div>
+        <div class="advisor-region">📍 Region Puławy–Lublin</div>
+        <div style="display:flex;gap:4px;justify-content:center;margin-bottom:12px">
+          <span style="background:#d1fae5;color:#065f46;font-size:10px;padding:2px 6px;border-radius:6px;font-weight:600">✓ Dostępny</span>
+        </div>
+        <button class="chat-btn" onclick="">💬 WhatsApp</button>
+      </div>
+      <div class="advisor-card">
+        <div class="advisor-avatar" style="background:#dbeafe;font-size:28px">👩‍🌾</div>
+        <div class="advisor-name">Anna Wiśniewska</div>
+        <div class="advisor-role">Agronom · Ochrona roślin, choroby</div>
+        <div class="advisor-region">📍 Region Radom–Kielce</div>
+        <div style="display:flex;gap:4px;justify-content:center;margin-bottom:12px">
+          <span style="background:#d1fae5;color:#065f46;font-size:10px;padding:2px 6px;border-radius:6px;font-weight:600">✓ Dostępna</span>
+        </div>
+        <button class="chat-btn">📞 Zadzwoń</button>
+      </div>
+      <div class="advisor-card">
+        <div class="advisor-avatar" style="background:#fef3c7;font-size:28px">👨‍💼</div>
+        <div class="advisor-name">Tomasz Mazur</div>
+        <div class="advisor-role">Key Account Manager · Finansowanie</div>
+        <div class="advisor-region">📍 Region Mazowsze–Podlasie</div>
+        <div style="display:flex;gap:4px;justify-content:center;margin-bottom:12px">
+          <span style="background:#fef3c7;color:#92400e;font-size:10px;padding:2px 6px;border-radius:6px;font-weight:600">⏳ Niedostępny do 14:00</span>
+        </div>
+        <button class="chat-btn" style="background:var(--muted)">📅 Umów termin</button>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="bot-chat">
+        <div class="card-title">🤖 Bot Diagnostyczny AI <span class="badge">Beta</span></div>
+        <div class="bot-messages" id="bot-messages">
+          <div class="bot-msg">
+            <div class="bot-avatar ai">🤖</div>
+            <div class="bot-bubble">Cześć! Jestem asystentem agrotechnicznym Azoty Farmer. Możesz opisać problem z uprawą, przesłać zdjęcie lub zapytać o plan nawozowy.</div>
+          </div>
+          <div class="bot-msg user">
+            <div class="bot-avatar me">JK</div>
+            <div class="bot-bubble">Na liściach pszenicy pojawiły się żółte plamy w kształcie rdzawych plamek.</div>
+          </div>
+          <div class="bot-msg">
+            <div class="bot-avatar ai">🤖</div>
+            <div class="bot-bubble">Na podstawie opisu to może być <strong>rdza żółta (Puccinia striiformis)</strong>. Zalecam: 1) Aplikacja fungicydu (Tebukonazol + Protiokonazol), 2) Kontrola sąsiednich pól, 3) Zgłoszenie do agronoma Anny Wiśniewskiej. Czy chcesz przesłać zdjęcie do potwierdzenia?</div>
+          </div>
+        </div>
+        <div class="bot-input-row">
+          <input class="bot-input" id="bot-input" placeholder="Opisz problem lub zapytaj o nawożenie…" onkeypress="if(event.key==='Enter')sendBot()">
+          <button class="bot-send" onclick="sendBot()">➤</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📋 Plan nawozowy — sezon 2025</div>
+        <table class="price-table">
+          <tr><th>Termin</th><th>Pole</th><th>Nawóz</th><th>Dawka</th></tr>
+          <tr><td>15.03</td><td>Pole Północne</td><td>RSM® 32%</td><td>180 kg/ha</td></tr>
+          <tr><td>25.03</td><td>Pole Wschodnie</td><td>Saletra 34N</td><td>150 kg/ha</td></tr>
+          <tr><td>05.04</td><td>Wszystkie</td><td>CANWIL 27N</td><td>100 kg/ha</td></tr>
+          <tr><td>20.05</td><td>Rzepak</td><td>Siarczan Am.</td><td>80 kg/ha</td></tr>
+        </table>
+        <button class="btn btn-outline btn-sm" style="margin-top:14px;width:100%">📥 Pobierz plan PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ALERTS ============ -->
+  <div id="page-alerts" class="page">
+
+    <!-- MAP SECTION -->
+    <div class="card" style="margin-bottom:20px;padding:0;overflow:hidden">
+      <div style="padding:16px 20px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--navy)">🗺️ Mapa alertów regionalnych</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Kliknij na mapie aby zaznaczyć swój obszar monitorowania. Możesz rysować wielokąt lub wybrać promień.</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <div id="mode-btns" style="display:flex;gap:6px">
+            <button class="btn btn-sm" id="btn-radius" onclick="setMapMode('radius')" style="background:var(--blue);color:#fff;font-size:12px">📍 Promień</button>
+            <button class="btn btn-sm btn-outline" id="btn-polygon" onclick="setMapMode('polygon')" style="font-size:12px">✏️ Rysuj obszar</button>
+            <button class="btn btn-sm btn-outline" id="btn-clear" onclick="clearMap()" style="font-size:12px;color:var(--red);border-color:var(--red)">🗑️ Wyczyść</button>
+          </div>
+          <div id="radius-control" style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)">
+            Promień: <strong id="radius-label" style="color:var(--navy)">10 km</strong>
+            <input type="range" id="radius-slider" min="2" max="50" value="10" oninput="updateRadius(this.value)" style="width:80px;accent-color:var(--blue)">
+          </div>
+        </div>
+      </div>
+
+      <!-- CANVAS MAP -->
+      <div style="position:relative">
+        <canvas id="alert-map" width="900" height="420" style="width:100%;height:420px;display:block;cursor:crosshair;background:#e8f0e0"></canvas>
+        <div id="map-tooltip" style="position:absolute;background:rgba(26,46,82,.88);color:#fff;font-size:12px;padding:6px 10px;border-radius:8px;pointer-events:none;display:none;backdrop-filter:blur(4px);white-space:nowrap;z-index:10"></div>
+        <div style="position:absolute;bottom:10px;left:12px;background:rgba(255,255,255,.9);border-radius:8px;padding:6px 12px;font-size:11px;color:var(--muted);backdrop-filter:blur(4px)">
+          📍 Okolice Puław, woj. lubelskie
+        </div>
+        <div style="position:absolute;top:10px;right:12px;display:flex;flex-direction:column;gap:4px">
+          <button onclick="zoomMap(1.2)" style="width:30px;height:30px;border:none;background:white;border-radius:6px;font-size:16px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.15)">+</button>
+          <button onclick="zoomMap(0.83)" style="width:30px;height:30px;border:none;background:white;border-radius:6px;font-size:16px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.15)">−</button>
+        </div>
+        <div style="position:absolute;bottom:10px;right:12px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+          <span style="background:rgba(231,76,60,.85);color:#fff;font-size:10px;padding:3px 8px;border-radius:6px;font-weight:600">🐛 Szkodnik</span>
+          <span style="background:rgba(52,152,219,.85);color:#fff;font-size:10px;padding:3px 8px;border-radius:6px;font-weight:600">❄️ Pogoda</span>
+          <span style="background:rgba(46,204,113,.85);color:#fff;font-size:10px;padding:3px 8px;border-radius:6px;font-weight:600">💡 Oferta</span>
+          <span style="background:rgba(243,156,18,.85);color:#fff;font-size:10px;padding:3px 8px;border-radius:6px;font-weight:600">📋 Info</span>
+        </div>
+      </div>
+
+      <div id="map-status" style="padding:10px 20px;background:var(--bg);font-size:12px;color:var(--muted);border-top:1px solid var(--border);display:flex;align-items:center;gap:8px">
+        <span>ℹ️</span><span id="map-status-text">Kliknij na mapie, aby ustawić środek obszaru monitorowania (tryb: promień).</span>
+        <span id="area-info" style="margin-left:auto;font-weight:600;color:var(--navy)"></span>
+      </div>
+    </div>
+
+    <!-- FILTER + FEED -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <div class="tabs" style="margin-bottom:0">
+        <div class="tab active" onclick="filterAlerts('all',this)">🔔 Wszystkie (5)</div>
+        <div class="tab" onclick="filterAlerts('szkodnik',this)">🐛 Szkodniki</div>
+        <div class="tab" onclick="filterAlerts('pogoda',this)">🌦️ Pogoda</div>
+        <div class="tab" onclick="filterAlerts('oferta',this)">💡 Oferty</div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="openReportModal()">+ Zgłoś zdarzenie</button>
+    </div>
+
+    <div id="alert-feed-list" class="alert-feed">
+      <div class="alert-feed-item" data-type="szkodnik" data-mapx="0.38" data-mapy="0.45">
+        <div class="alert-feed-icon">🐛</div>
+        <div style="flex:1">
+          <div class="alert-feed-title">Mszyca zbożowa — atak w okolicy</div>
+          <div class="alert-feed-desc">Rolnik Jan P. zgłosił silne porażenie mszycy zbożowej na polu pszenicy ozimej. Zalecana kontrola własnych upraw.</div>
+          <div class="alert-feed-meta">
+            <span>🕐 2 godz. temu</span>
+            <span class="alert-feed-dist">📍 3,2 km od Ciebie</span>
+            <span style="color:var(--red);font-weight:600">⚠️ Wysoki priorytet</span>
+          </div>
+        </div>
+        <button onclick="flyToAlert(0.38,0.45,'Mszyca zbożowa')" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer;flex-shrink:0;color:var(--blue);font-weight:600">🗺️ Pokaż</button>
+      </div>
+      <div class="alert-feed-item" data-type="pogoda" data-mapx="0.5" data-mapy="0.3">
+        <div class="alert-feed-icon">❄️</div>
+        <div style="flex:1">
+          <div class="alert-feed-title">Alert przymrozku — 8–9 marca</div>
+          <div class="alert-feed-desc">Prognozowane temperatury nocne −2°C do −4°C. Zagrożenie dla rzepaku w fazie BBCH 52–55.</div>
+          <div class="alert-feed-meta">
+            <span>🕐 5 godz. temu</span>
+            <span class="alert-feed-dist">📍 Cały region</span>
+            <span style="color:var(--red);font-weight:600">⚠️ Pilne</span>
+          </div>
+        </div>
+        <button onclick="flyToAlert(0.5,0.3,'Przymrozek')" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer;flex-shrink:0;color:var(--blue);font-weight:600">🗺️ Pokaż</button>
+      </div>
+      <div class="alert-feed-item" data-type="pogoda" data-mapx="0.62" data-mapy="0.6">
+        <div class="alert-feed-icon">💧</div>
+        <div style="flex:1">
+          <div class="alert-feed-title">Podtopienia w dolinie Wisły</div>
+          <div class="alert-feed-desc">Stan wody Wisły w Puławach przekroczył normę. Możliwe podtopienia działek poniżej 120 m n.p.m.</div>
+          <div class="alert-feed-meta">
+            <span>🕐 1 dzień temu</span>
+            <span class="alert-feed-dist">📍 5,8 km od Ciebie</span>
+            <span style="color:var(--muted)">ℹ️ Informacyjny</span>
+          </div>
+        </div>
+        <button onclick="flyToAlert(0.62,0.6,'Podtopienia')" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer;flex-shrink:0;color:var(--blue);font-weight:600">🗺️ Pokaż</button>
+      </div>
+      <div class="alert-feed-item" data-type="oferta" data-mapx="0.44" data-mapy="0.55">
+        <div class="alert-feed-icon">🚜</div>
+        <div style="flex:1">
+          <div class="alert-feed-title">Dostępna usługa — oprysk dronem</div>
+          <div class="alert-feed-desc">Rolnik z sąsiedztwa oferuje wynajęcie drona do oprysków. Cena: 40 zł/ha. Kontakt przez platformę.</div>
+          <div class="alert-feed-meta">
+            <span>🕐 2 dni temu</span>
+            <span class="alert-feed-dist">📍 1,4 km od Ciebie</span>
+            <span style="color:var(--accent);font-weight:600">💡 Oferta</span>
+          </div>
+        </div>
+        <button onclick="flyToAlert(0.44,0.55,'Dron do wynajęcia')" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer;flex-shrink:0;color:var(--blue);font-weight:600">🗺️ Pokaż</button>
+      </div>
+      <div class="alert-feed-item" data-type="info" data-mapx="0.5" data-mapy="0.5">
+        <div class="alert-feed-icon">🌱</div>
+        <div style="flex:1">
+          <div class="alert-feed-title">Spotkanie regionalne producentów</div>
+          <div class="alert-feed-desc">Spotkanie producentów pszenicy w gminie Puławy — 15 marca, godz. 17:00, Dom Kultury. Odmiany odporne na suszę.</div>
+          <div class="alert-feed-meta">
+            <span>🕐 3 dni temu</span>
+            <span class="alert-feed-dist">📍 Puławy</span>
+            <span style="color:var(--blue);font-weight:600">📅 Wydarzenie</span>
+          </div>
+        </div>
+        <button onclick="flyToAlert(0.5,0.5,'Spotkanie')" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer;flex-shrink:0;color:var(--blue);font-weight:600">🗺️ Pokaż</button>
+      </div>
+    </div>
+
+    <!-- REPORT MODAL -->
+    <div id="report-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center">
+      <div style="background:#fff;border-radius:16px;padding:28px;width:440px;max-width:95vw;animation:fadeUp .25s ease">
+        <div style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px">📢 Zgłoś zdarzenie</div>
+        <div style="margin-bottom:12px">
+          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Typ zdarzenia</label>
+          <select style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:DM Sans,sans-serif;font-size:13px;outline:none">
+            <option>🐛 Szkodnik / Choroba</option>
+            <option>❄️ Zjawisko pogodowe</option>
+            <option>💧 Podtopienie / Susza</option>
+            <option>💡 Oferta usługi</option>
+            <option>📅 Wydarzenie lokalne</option>
+            <option>⚠️ Inne zagrożenie</option>
+          </select>
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Opis zdarzenia</label>
+          <textarea style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:DM Sans,sans-serif;font-size:13px;outline:none;resize:vertical;min-height:80px" placeholder="Opisz co zaobserwowałeś…"></textarea>
+        </div>
+        <div style="margin-bottom:16px">
+          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">Lokalizacja</label>
+          <input style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:DM Sans,sans-serif;font-size:13px;outline:none" value="📍 Moja lokalizacja (z mapy)" readonly>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-primary" style="flex:1" onclick="submitReport()">✅ Wyślij zgłoszenie</button>
+          <button class="btn btn-outline" style="flex:1" onclick="closeReportModal()">Anuluj</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+// ====== NAVIGATION ======
+const pages = {
+  dashboard: 'Pulpit',
+  profile: 'Mój Profil Rolnika',
+  fields: 'Moje Pola — Monitoring NDVI',
+  finance: 'Centrum Finansowe',
+  marketplace: 'Marketplace — Total Farm Solution',
+  loyalty: 'Program Lojalnościowy 4.0',
+  barter: 'Barter 4.0 — Giełda Płodów Rolnych',
+  esg: 'ESG & Certyfikaty Węglowe',
+  advisor: 'Doradca KAM',
+  alerts: 'Alerty Sąsiedzkie'
+};
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes(id)) n.classList.add('active');
+  });
+  document.getElementById('page-title').textContent = pages[id] || id;
+  window.scrollTo(0, 0);
+  if (id === 'alerts') setTimeout(initMap, 60);
+  if (id === 'finance') setTimeout(initFinance, 30);
+}
+
+// ====== MARKETPLACE ======
+function filterProducts(cat, el) {
+  document.querySelectorAll('.chip').forEach(c => { c.classList.remove('chip-active'); c.classList.add('chip-inactive'); });
+  el.classList.remove('chip-inactive'); el.classList.add('chip-active');
+  document.querySelectorAll('.product-card').forEach(c => {
+    c.style.display = (cat === 'all' || c.dataset.cat.includes(cat)) ? 'block' : 'none';
+  });
+}
+
+// ====== BOT ======
+const botResponses = {
+  'nawóz': 'Polecam RSM® 32% na wiosenne żywienie. Optymalna dawka dla pszenicy: 160–200 kg/ha w fazie krzewienia. Chcesz żebym przygotował pełny plan nawozowy?',
+  'kredyt': 'Aktualnie najlepsza oferta to BGŻ BNP Paribas — 2,9% rocznie z możliwością odroczenia do żniw. Mogę przekazać Twój profil bezpośrednio do doradcy finansowego.',
+  'pogoda': 'W Twojej lokalizacji (Puławy) prognozowany jest przymrozek 8–9 marca. Zalecam okrycie rzepaku w fazie pąkowania.',
+  default: 'Przekazuję Twoje pytanie do agronoma Anny Wiśniewskiej. Otrzymasz odpowiedź przez WhatsApp w ciągu 2 godzin. Czy chcesz skontaktować się bezpośrednio?'
+};
+
+function sendBot() {
+  const input = document.getElementById('bot-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  const msgs = document.getElementById('bot-messages');
+  msgs.innerHTML += `<div class="bot-msg user"><div class="bot-avatar me">JK</div><div class="bot-bubble">${msg}</div></div>`;
+  input.value = '';
+  setTimeout(() => {
+    const key = Object.keys(botResponses).find(k => msg.toLowerCase().includes(k)) || 'default';
+    msgs.innerHTML += `<div class="bot-msg"><div class="bot-avatar ai">🤖</div><div class="bot-bubble">${botResponses[key]}</div></div>`;
+    msgs.scrollTop = msgs.scrollHeight;
+  }, 800);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// ====== FINANCE COMPARATOR ======
+const BANKS = [
+  { id:'bnp',   name:'BNP Paribas',       color:'#007A3D', abbr:'BNP'  },
+  { id:'pko',   name:'PKO Bank Polski',   color:'#003087', abbr:'PKO'  },
+  { id:'pekao', name:'Bank Pekao SA',     color:'#D22630', abbr:'PEK'  },
+  { id:'ing',   name:'ING Bank Śląski',   color:'#FF6200', abbr:'ING'  },
+  { id:'ca',    name:'Credit Agricole',   color:'#008000', abbr:'CA'   },
+  { id:'bgz',   name:'BGŻ Rolny',         color:'#005B2F', abbr:'BGŻ'  },
+  { id:'sb',    name:'SGB Bank',          color:'#1A4A8A', abbr:'SGB'  },
+  { id:'bsw',   name:'Bank Spółdz.',      color:'#7B3F00', abbr:'BSW'  },
+  { id:'alior', name:'Alior Bank',        color:'#CC0000', abbr:'ALI'  },
+  { id:'mbank', name:'mBank',             color:'#CC0000', abbr:'mBK'  },
+];
+
+const MILL_ROWS = {
+  kredyt: [
+    { cecha:'Maksymalny okres finansowania', group:'Oferta', kind:'Inne', type:'good', uwagi:2, vals:{ bnp:'do 120 mies. Dopuszcz. wysokie WR. Wiek przedmiotu do 14 lat (gr. I/II).', pko:'do 120 mies.', pekao:'do 84 mies.', ing:'do 96 mies.', ca:'do 108 mies.', bgz:'do 120 mies.', sb:'do 84 mies.', bsw:'do 60 mies.', alior:'do 84 mies.', mbank:'do 96 mies.' }},
+    { cecha:'Ograniczenia kwotowe finansowania', group:'Oferta', kind:'Inne', type:'info', uwagi:0, vals:{ bnp:'(wartość przedmiotu − opłata wstępna) × marża > 1 500 zł', pko:'min. 5 000 zł', pekao:'min. 10 000 zł', ing:'min. 3 000 zł', ca:'min. 5 000 zł', bgz:'brak ograniczeń', sb:'min. 5 000 zł', bsw:'min. 2 000 zł', alior:'min. 10 000 zł', mbank:'min. 5 000 zł' }},
+    { cecha:'Szybka decyzja kredytowa', group:'Oferta', kind:'TOiP', type:'good', uwagi:0, vals:{ bnp:'Decyzja w 8 sek. OW 0% do 500 tys. zł; brak notatki (>12 mies.); brak weksla do 500 tys.; poręczenie niewymagane (JDG/SC)', pko:'15 minut', pekao:'1 dzień roboczy', ing:'2 godziny', ca:'30 minut', bgz:'1 dzień', sb:'2 dni', bsw:'3 dni', alior:'1 dzień', mbank:'2 godziny' }},
+    { cecha:'Limity na firmę', group:'Oferta', kind:'TOiP', type:'good', uwagi:0, vals:{ bnp:'TAK', pko:'TAK', pekao:'TAK', ing:'TAK', ca:'TAK', bgz:'TAK', sb:'NIE', bsw:'NIE', alior:'TAK', mbank:'TAK' }},
+    { cecha:'Stała stopa procentowa', group:'Oferta', kind:'OWUL', type:'info', uwagi:0, vals:{ bnp:'TAK. Oparcie o IRS 2Y. ML może jednorazowo rekalkulować przy zmianie stopy.', pko:'TAK', pekao:'NIE', ing:'TAK', ca:'TAK', bgz:'TAK', sb:'NIE', bsw:'NIE', alior:'TAK', mbank:'TAK' }},
+    { cecha:'Leasing w EUR', group:'Oferta', kind:'OWUL', type:'good', uwagi:0, vals:{ bnp:'TAK', pko:'TAK', pekao:'TAK', ing:'TAK', ca:'TAK', bgz:'NIE', sb:'NIE', bsw:'NIE', alior:'TAK', mbank:'TAK' }},
+    { cecha:'Raty sezonowe, degresja', group:'Oferta', kind:'OWUL', type:'good', uwagi:0, vals:{ bnp:'TAK', pko:'TAK', pekao:'NIE', ing:'TAK', ca:'TAK', bgz:'TAK', sb:'NIE', bsw:'NIE', alior:'NIE', mbank:'TAK' }},
+    { cecha:'Możliwe formy finansowania', group:'Oferta', kind:'Inne', type:'info', uwagi:0, vals:{ bnp:'Leasing operacyjny; finansowy; zwrotny techniczny (do 3 mies.); najem (gr. I + transport ciężki)', pko:'Leasing operacyjny, finansowy', pekao:'Leasing operacyjny, finansowy', ing:'Leasing operacyjny, finansowy, najem', ca:'Leasing operacyjny, finansowy', bgz:'Leasing operacyjny, finansowy', sb:'Pożyczka rolnicza', bsw:'Kredyt obrotowy', alior:'Leasing operacyjny, finansowy', mbank:'Leasing operacyjny, finansowy' }},
+    { cecha:'Dofinansowanie leasingu EBI, EFI, EBOiR', group:'Oferta', kind:'Inne', type:'good', uwagi:0, vals:{ bnp:'TAK', pko:'TAK', pekao:'TAK', ing:'TAK', ca:'TAK', bgz:'TAK', sb:'NIE', bsw:'NIE', alior:'NIE', mbank:'NIE' }},
+    { cecha:'Leasing z gwarancją BGK', group:'Oferta', kind:'Inne', type:'good', uwagi:0, vals:{ bnp:'TAK', pko:'TAK', pekao:'NIE', ing:'TAK', ca:'TAK', bgz:'TAK', sb:'TAK', bsw:'NIE', alior:'NIE', mbank:'NIE' }},
+    { cecha:'Ujemna stopa EURIBOR', group:'Oferta', kind:'OWUL', type:'bad', uwagi:0, vals:{ bnp:'NIE', pko:'NIE', pekao:'NIE', ing:'TAK — ochrona klienta', ca:'NIE', bgz:'NIE', sb:'NIE', bsw:'NIE', alior:'NIE', mbank:'TAK — ochrona klienta' }},
+    { cecha:'Weksel jako zabezpieczenie', group:'Obsługa', kind:'TOiP', type:'good', uwagi:0, vals:{ bnp:'Niewymagany do 500 tys. zł (>12 mies. dz.; brak wizyty; brak poręczenia JDG/SC)', pko:'Niewymagany do 300 tys.', pekao:'Wymagany', ing:'Niewymagany do 200 tys.', ca:'Niewymagany do 400 tys.', bgz:'Niewymagany do 500 tys.', sb:'Wymagany', bsw:'Wymagany', alior:'Wymagany', mbank:'Niewymagany do 250 tys.' }},
+    { cecha:'Promocje', group:'Oferta', kind:'Inne', type:'good', uwagi:0, vals:{ bnp:'2 500 zł za konto Mój Biznes; 600 zł za zawarcie umowy + otwarcie konta; Rejestracja GRATIS; Leasing z Nagrodą 3 000 zł', pko:'1 000 zł cashback', pekao:'6 mies. wakacje kredytowe', ing:'0% prowizji', ca:'Ubezpieczenie GRATIS', bgz:'Doradca gratis', sb:'Brak', bsw:'Brak', alior:'500 zł cashback', mbank:'Rata 0% przez 3 mies.' }},
+    { cecha:'Roczna opłata administracyjna', group:'Obsługa', kind:'Inne', type:'bad', uwagi:1, vals:{ bnp:'NIE', pko:'NIE', pekao:'TAK — 0,5%', ing:'NIE', ca:'NIE', bgz:'NIE', sb:'TAK — 0,3%', bsw:'TAK — 0,4%', alior:'TAK — 0,5%', mbank:'NIE' }},
+    { cecha:'Pułapki w ofertach', group:'Obsługa', kind:'Inne', type:'good', uwagi:1, vals:{ bnp:'Oferta jest przejrzysta i bez żadnych pułapek dla klienta.', pko:'Przejrzysta', pekao:'Opłaty administracyjne mogą zaskakiwać', ing:'Przejrzysta', ca:'Przejrzysta', bgz:'Przejrzysta', sb:'Dodatkowe opłaty po 12 mies.', bsw:'Opłaty manipulacyjne', alior:'Opłaty za wcześniejszą spłatę', mbank:'Przejrzysta' }},
+    { cecha:'Zmiana terminu płatności raty', group:'Obsługa', kind:'Inne', type:'info', uwagi:1, vals:{ bnp:'500 zł', pko:'0 zł', pekao:'300 zł', ing:'200 zł', ca:'0 zł', bgz:'500 zł', sb:'400 zł', bsw:'250 zł', alior:'350 zł', mbank:'0 zł' }},
+    { cecha:'Odroczenie płatności (harvest finance)', group:'Oferta', kind:'Inne', type:'good', uwagi:0, vals:{ bnp:'do 180 dni — powiązane z terminem zbioru', pko:'do 90 dni', pekao:'do 60 dni', ing:'do 90 dni', ca:'do 120 dni', bgz:'do 180 dni', sb:'do 60 dni', bsw:'do 60 dni', alior:'do 90 dni', mbank:'do 90 dni' }},
+    { cecha:'Produkty niestandardowe', group:'Produkty', kind:'Inne', type:'good', uwagi:0, vals:{ bnp:'Leasing EV z NFOŚiGW; 1 rata w miesiącu odbioru; Promocja 3 raty obniżone — obniżenie o 90%', pko:'Kredyt start-up', pekao:'Brak', ing:'Leasing balonowy', ca:'Kredyt inwestycyjny z premią', bgz:'Kredyt płynnościowy rolniczy', sb:'Brak', bsw:'Brak', alior:'Pożyczka hipoteczna rolnicza', mbank:'Brak' }},
+  ],
+  ubezp:[
+    { cecha:'Ubezpieczenie upraw od suszy', group:'Ubezpieczenie', kind:'Ubezpieczenia', type:'good', uwagi:0, vals:{ bnp:'TAK — dotacja do 65%', pko:'TAK — dotacja do 65%', pekao:'TAK', ing:'NIE', ca:'TAK', bgz:'TAK — dotacja do 65%', sb:'TAK', bsw:'NIE', alior:'NIE', mbank:'NIE' }},
+    { cecha:'Ubezpieczenie maszyn rolniczych', group:'Ubezpieczenie', kind:'Ubezpieczenia', type:'good', uwagi:0, vals:{ bnp:'TAK', pko:'TAK', pekao:'TAK', ing:'TAK', ca:'TAK', bgz:'TAK', sb:'TAK', bsw:'TAK', alior:'TAK', mbank:'TAK' }},
+    { cecha:'Ubezpieczenie GAP maszyn', group:'GAP', kind:'Ubezpieczenia', type:'good', uwagi:0, vals:{ bnp:'TAK', pko:'TAK', pekao:'NIE', ing:'TAK', ca:'TAK', bgz:'NIE', sb:'NIE', bsw:'NIE', alior:'NIE', mbank:'TAK' }},
+    { cecha:'Składka roczna (od)', group:'Ubezpieczenie', kind:'Ubezpieczenia', type:'info', uwagi:0, vals:{ bnp:'180 zł/ha', pko:'195 zł/ha', pekao:'210 zł/ha', ing:'220 zł/ha', ca:'175 zł/ha', bgz:'170 zł/ha', sb:'200 zł/ha', bsw:'215 zł/ha', alior:'230 zł/ha', mbank:'205 zł/ha' }},
+  ],
+  odrocz:[
+    { cecha:'Odroczenie bez odsetek', group:'Oferta', kind:'Inne', type:'good', uwagi:0, vals:{ bnp:'do 180 dni — 0%', pko:'do 90 dni — 0%', pekao:'do 60 dni — 0%', ing:'do 90 dni — 0%', ca:'do 120 dni — 0%', bgz:'do 180 dni — 0%', sb:'do 60 dni', bsw:'do 60 dni', alior:'do 90 dni', mbank:'do 90 dni' }},
+    { cecha:'Powiązanie z terminem zbioru', group:'Oferta', kind:'Inne', type:'good', uwagi:0, vals:{ bnp:'TAK — automatyczne', pko:'TAK', pekao:'NIE', ing:'NIE', ca:'TAK', bgz:'TAK', sb:'NIE', bsw:'NIE', alior:'NIE', mbank:'NIE' }},
+    { cecha:'Limit odroczenia', group:'Oferta', kind:'Inne', type:'info', uwagi:0, vals:{ bnp:'do 500 tys. zł', pko:'do 200 tys. zł', pekao:'do 100 tys. zł', ing:'do 150 tys. zł', ca:'do 300 tys. zł', bgz:'do 500 tys. zł', sb:'do 50 tys. zł', bsw:'do 50 tys. zł', alior:'do 100 tys. zł', mbank:'do 200 tys. zł' }},
+  ],
+  leasing:[
+    { cecha:'Leasing maszyn rolniczych (nowe)', group:'Oferta', kind:'OWUL', type:'good', uwagi:0, vals:{ bnp:'TAK — decyzja 8 sek.', pko:'TAK', pekao:'TAK', ing:'TAK', ca:'TAK', bgz:'TAK', sb:'NIE', bsw:'NIE', alior:'TAK', mbank:'TAK' }},
+    { cecha:'Leasing maszyn używanych', group:'Oferta', kind:'OWUL', type:'info', uwagi:0, vals:{ bnp:'TAK — do 14 lat na koniec okresu', pko:'do 10 lat', pekao:'do 8 lat', ing:'do 10 lat', ca:'do 12 lat', bgz:'do 14 lat', sb:'do 8 lat', bsw:'do 6 lat', alior:'do 8 lat', mbank:'do 10 lat' }},
+    { cecha:'Wkład własny (OW)', group:'Oferta', kind:'OWUL', type:'good', uwagi:0, vals:{ bnp:'0% (do 500 tys. zł; >12 mies.)', pko:'0% (do 300 tys.)', pekao:'10%', ing:'5%', ca:'0%', bgz:'0%', sb:'10%', bsw:'15%', alior:'10%', mbank:'5%' }},
+    { cecha:'Leasing zwrotny techniczny', group:'Oferta', kind:'Inne', type:'good', uwagi:0, vals:{ bnp:'TAK (maszyny do 3 mies.)', pko:'NIE', pekao:'NIE', ing:'NIE', ca:'TAK', bgz:'TAK', sb:'NIE', bsw:'NIE', alior:'NIE', mbank:'NIE' }},
+  ]
+};
+
+let millActiveBankIds = ['bnp','pko','pekao','ing','ca'];
+
+function renderMillBankGrid() {
+  const g = document.getElementById('mill-bank-grid');
+  if (!g) return;
+  g.innerHTML = BANKS.map(b => {
+    const sel = millActiveBankIds.includes(b.id);
+    return `<div onclick="millToggleBank('${b.id}')" style="display:flex;align-items:center;gap:0;cursor:pointer;user-select:none;border:2px solid ${sel?b.color:'#dde6f5'};border-radius:8px;overflow:hidden;background:${sel?'#fff':'#f8faff'};min-width:110px;transition:all .15s">
+      <div style="width:40px;height:44px;background:${sel?b.color:'#e8ecf2'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <span style="color:${sel?'#fff':'#94a3b8'};font-size:9px;font-weight:800">${b.abbr}</span>
+      </div>
+      <div style="padding:4px 8px">
+        <div style="font-size:11px;font-weight:${sel?'700':'500'};color:${sel?b.color:'#94a3b8'};line-height:1.2">${b.name}</div>
+        <div style="font-size:9px;color:${sel?'#64748b':'#cbd5e1'}">${sel?'✓ Zaznaczony':'Kliknij'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function millToggleBank(id) {
+  if (millActiveBankIds.includes(id)) {
+    millActiveBankIds = millActiveBankIds.filter(x => x !== id);
+  } else {
+    millActiveBankIds.push(id);
+  }
+  renderMillBankGrid();
+  renderMillMatrix();
+  const allCb = document.getElementById('mill-all');
+  if (allCb) allCb.checked = BANKS.every(b => millActiveBankIds.includes(b.id));
+}
+
+function millSelectAll(v) {
+  millActiveBankIds = v ? BANKS.map(b => b.id) : [];
+  renderMillBankGrid(); renderMillMatrix();
+}
+function millSelectAllKind(v) {
+  document.querySelectorAll('.mill-kind').forEach(c => c.checked = v);
+  renderMillMatrix();
+}
+function millSelectAllGrp(v) {
+  document.querySelectorAll('.mill-grp').forEach(c => c.checked = v);
+  renderMillMatrix();
+}
+
+function switchFinTab(tab) {
+  ['kredyt','ubezp','odrocz','leasing'].forEach(t => {
+    const el = document.getElementById('tab-' + t);
+    if (el) {
+      el.style.color = t === tab ? 'var(--blue)' : 'var(--muted)';
+      el.style.borderBottom = t === tab ? '3px solid var(--blue)' : '3px solid transparent';
+      el.style.fontWeight = t === tab ? '600' : '500';
+    }
+  });
+  const sel = document.getElementById('fin-group');
+  if (sel) sel.value = tab;
+  renderMillMatrix();
+}
+
+function renderMillMatrix() {
+  const header = document.getElementById('mill-selected-header');
+  const rowsEl = document.getElementById('mill-rows');
+  if (!header || !rowsEl) return;
+
+  const prodKey = document.getElementById('fin-group') ? document.getElementById('fin-group').value : 'kredyt';
+  const selBanks = BANKS.filter(b => millActiveBankIds.includes(b.id));
+  const showBad  = document.getElementById('mill-bad')  ? document.getElementById('mill-bad').checked  : true;
+  const showGood = document.getElementById('mill-good') ? document.getElementById('mill-good').checked : true;
+  const searchQ  = document.getElementById('mill-search') ? document.getElementById('mill-search').value.toLowerCase() : '';
+  const activeKinds = [...document.querySelectorAll('.mill-kind:checked')].map(c => c.value);
+  const activeGrps  = [...document.querySelectorAll('.mill-grp:checked')].map(c => c.value);
+
+  if (!selBanks.length) {
+    header.innerHTML = '';
+    rowsEl.innerHTML = '<div style="padding:30px;text-align:center;color:#94a3b8;font-size:13px">Wybierz co najmniej jeden bank.</div>';
+    return;
+  }
+
+  const colW = Math.max(120, Math.floor(560 / selBanks.length));
+  const gridCols = `260px ${selBanks.map(() => colW + 'px').join(' ')} 90px`;
+
+  header.style.display = 'grid';
+  header.style.gridTemplateColumns = gridCols;
+  header.innerHTML =
+    `<div style="padding:12px 16px;background:#f0f2f5;border-right:1px solid var(--border);font-size:12px;display:flex;flex-direction:column;justify-content:flex-end;gap:2px">
+      <div style="font-weight:700;color:var(--navy)">Firma</div>
+      <div style="color:var(--muted);font-size:11px;border-top:1px solid #ccc;padding-top:4px">Cecha</div>
+    </div>` +
+    selBanks.map(b =>
+      `<div style="padding:10px 8px;background:#f0f2f5;border-right:1px solid var(--border);text-align:center">
+        <div style="width:38px;height:38px;border-radius:7px;background:${b.color};display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:800;margin-bottom:4px">${b.abbr}</div>
+        <div style="font-size:10px;font-weight:700;color:${b.color};line-height:1.2">${b.name}</div>
+        <div style="font-size:9px;color:var(--muted)">2025-12-31</div>
+      </div>`
+    ).join('') +
+    `<div style="padding:10px 6px;background:#f0f2f5;text-align:center;font-size:10px;font-weight:700;color:var(--navy);line-height:1.3">Liczba osób<br>która uznała<br>cechę za<br>przydatną</div>`;
+
+  const allRows = MILL_ROWS[prodKey] || [];
+  const visible = allRows.filter(r => {
+    if (searchQ && !r.cecha.toLowerCase().includes(searchQ)) return false;
+    if (r.type === 'bad'  && !showBad)  return false;
+    if (r.type === 'good' && !showGood) return false;
+    if (!activeKinds.includes(r.kind))  return false;
+    if (!activeGrps.includes(r.group))  return false;
+    return true;
+  });
+
+  if (!visible.length) {
+    rowsEl.innerHTML = '<div style="padding:24px;text-align:center;color:#94a3b8;font-size:13px">Brak wyników dla wybranych filtrów.</div>';
+    return;
+  }
+
+  rowsEl.style.display = 'block';
+  rowsEl.innerHTML = visible.map((r, ri) => {
+    const rowBg   = ri % 2 === 0 ? '#ffffff' : '#f7f9fc';
+    const isGood  = r.type === 'good';
+    const isBad   = r.type === 'bad';
+
+    const cells = selBanks.map(b => {
+      const val = r.vals[b.id] || '—';
+      const greenCell = isGood && val !== 'NIE' && val !== '—';
+      const redCell   = isBad  && val === 'TAK';
+      const cellBg    = greenCell ? '#eaf6ee' : redCell ? '#fdecea' : rowBg;
+      const txtColor  = greenCell ? '#1a6b3a' : redCell ? '#cc0000' : 'var(--navy)';
+      return `<div style="padding:10px 8px;background:${cellBg};border-right:1px solid var(--border);border-top:1px solid var(--border);font-size:12px;color:${txtColor};min-height:50px;display:flex;flex-direction:column;justify-content:center;gap:4px">
+        <div style="line-height:1.4">${val}</div>
+        <button onclick="var b=this;b.style.display='none';b.nextSibling.style.display='inline'" style="background:#1a2e52;color:#fff;border:none;border-radius:4px;font-size:10px;padding:2px 7px;cursor:pointer;font-family:DM Sans,sans-serif;width:fit-content">👍 Przydatne</button>
+        <span style="display:none;font-size:10px;color:#16a34a;font-weight:600">✓ Oznaczono</span>
+      </div>`;
+    }).join('');
+
+    return `<div style="display:grid;grid-template-columns:${gridCols}">
+      <div style="padding:12px 16px;background:${rowBg};border-right:2px solid var(--border);border-top:1px solid var(--border);display:flex;flex-direction:column;gap:5px;justify-content:center">
+        <div style="font-size:13px;font-weight:600;color:var(--navy);line-height:1.3">${r.cecha}</div>
+        <button style="background:#e8702a;color:#fff;border:none;border-radius:4px;font-size:10px;padding:2px 8px;cursor:pointer;font-family:DM Sans,sans-serif;width:fit-content">📝 Prześlij uwagi</button>
+      </div>
+      ${cells}
+      <div style="padding:8px 6px;background:${rowBg};border-top:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px">
+        <div style="width:26px;height:26px;border-radius:50%;background:#f0f4fb;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--navy)">${r.uwagi}</div>
+        <button style="background:#2563c8;color:#fff;border:none;border-radius:4px;font-size:10px;padding:2px 6px;cursor:pointer;font-family:DM Sans,sans-serif">👍 Przydatne</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function initFinance() {
+  renderMillBankGrid();
+  renderMillMatrix();
+}
+
+// ====== ALERT MAP ======
+let mapMode = 'radius';
+let userCenter = null;
+let userRadius = 10;
+let polygonPoints = [];
+let isDrawing = false;
+let highlightPin = null;
+let zoomLevel = 1;
+
+const alertPins = [
+  {x:0.38,y:0.45,type:'szkodnik',label:'Mszyca zbożowa',color:'#e74c3c',icon:'🐛'},
+  {x:0.50,y:0.30,type:'pogoda',label:'Przymrozek',color:'#3498db',icon:'❄️'},
+  {x:0.62,y:0.60,type:'pogoda',label:'Podtopienia',color:'#3498db',icon:'💧'},
+  {x:0.44,y:0.55,type:'oferta',label:'Dron do wynajęcia',color:'#00b894',icon:'🚜'},
+  {x:0.50,y:0.50,type:'info',label:'Spotkanie regionalne',color:'#f59e0b',icon:'🌱'},
+];
+
+function initMap() {
+  const canvas = document.getElementById('alert-map');
+  if (!canvas) return;
+  drawMap();
+  canvas.addEventListener('click', function(e) {
+    const rect = canvas.getBoundingClientRect();
+    const cx = (e.clientX - rect.left) * (canvas.width / rect.width);
+    const cy = (e.clientY - rect.top)  * (canvas.height / rect.height);
+    if (mapMode === 'radius') {
+      userCenter = {x: cx / canvas.width, y: cy / canvas.height};
+      document.getElementById('map-status-text').textContent = `Obszar monitorowania: promień ${userRadius} km ustawiony.`;
+      document.getElementById('area-info').textContent = `Obszar: ~${Math.round(Math.PI * userRadius * userRadius)} km²`;
+      drawMap();
+    } else if (mapMode === 'polygon') {
+      polygonPoints.push({x: cx / canvas.width, y: cy / canvas.height});
+      isDrawing = true;
+      document.getElementById('map-status-text').textContent = `Rysowanie: ${polygonPoints.length} punktów. Dwuklik = zakończ.`;
+      drawMap();
+    }
+  });
+  canvas.addEventListener('dblclick', function() {
+    if (mapMode === 'polygon' && polygonPoints.length >= 3) {
+      isDrawing = false;
+      document.getElementById('map-status-text').textContent = `Obszar narysowany (${polygonPoints.length} punktów).`;
+      document.getElementById('area-info').textContent = `Obszar: ~${estimatePolygonArea(polygonPoints)} km²`;
+      drawMap();
+    }
+  });
+  canvas.addEventListener('mousemove', function(e) {
+    const rect = canvas.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) * (canvas.width / rect.width) / canvas.width;
+    const my = (e.clientY - rect.top)  * (canvas.height / rect.height) / canvas.height;
+    const tooltip = document.getElementById('map-tooltip');
+    let found = null;
+    for (const pin of alertPins) {
+      const dx = (pin.x - mx) * canvas.width;
+      const dy = (pin.y - my) * canvas.height;
+      if (Math.sqrt(dx*dx + dy*dy) < 18) { found = pin; break; }
+    }
+    if (found) {
+      tooltip.style.display = 'block';
+      tooltip.style.left = (e.clientX - rect.left + 12) + 'px';
+      tooltip.style.top  = (e.clientY - rect.top  - 30) + 'px';
+      tooltip.textContent = found.icon + ' ' + found.label;
+    } else {
+      tooltip.style.display = 'none';
+    }
+    if (mapMode === 'polygon' && isDrawing && polygonPoints.length > 0) drawMap(mx, my);
+  });
+}
+
+function estimatePolygonArea(pts) {
+  let area = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const j = (i + 1) % pts.length;
+    area += pts[i].x * pts[j].y - pts[j].x * pts[i].y;
+  }
+  return Math.round(Math.abs(area) / 2 * 80 * 80);
+}
+
+function drawMap(mouseX, mouseY) {
+  const canvas = document.getElementById('alert-map');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const bg = ctx.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0, '#d4e8c2'); bg.addColorStop(0.5, '#c8ddb5'); bg.addColorStop(1, '#bdd4a8');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 60) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (let y = 0; y < H; y += 60) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+  ctx.beginPath(); ctx.moveTo(W*0.58,0); ctx.bezierCurveTo(W*0.62,H*0.2,W*0.60,H*0.5,W*0.64,H);
+  ctx.strokeStyle = 'rgba(100,170,240,0.7)'; ctx.lineWidth = 7; ctx.stroke();
+  ctx.strokeStyle = 'rgba(150,200,255,0.5)'; ctx.lineWidth = 3; ctx.stroke();
+
+  [{x:0.50,y:0.49,name:'Puławy',major:true},{x:0.30,y:0.30,name:'Kazimierz Dolny',major:false},{x:0.70,y:0.35,name:'Dęblin',major:false},{x:0.25,y:0.65,name:'Opole Lub.',major:false},{x:0.75,y:0.65,name:'Annopol',major:false}].forEach(t => {
+    ctx.beginPath(); ctx.arc(t.x*W, t.y*H, t.major?6:4, 0, Math.PI*2);
+    ctx.fillStyle = t.major ? '#1a2e52' : '#4a6080'; ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(t.x*W, t.y*H, t.major?3:2, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = t.major ? '#1a2e52' : '#3a5070';
+    ctx.font = (t.major ? 'bold 12px' : '10px') + ' DM Sans, sans-serif';
+    ctx.fillText(t.name, t.x*W+8, t.y*H+4);
+  });
+
+  if (mapMode === 'radius' && userCenter) {
+    const px = userCenter.x*W, py = userCenter.y*H, r = (userRadius/80)*W;
+    ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(37,99,200,0.12)'; ctx.fill();
+    ctx.strokeStyle = 'rgba(37,99,200,0.6)'; ctx.lineWidth = 2; ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(px, py, 7, 0, Math.PI*2); ctx.fillStyle = '#2563c8'; ctx.fill();
+    ctx.beginPath(); ctx.arc(px, py, 3, 0, Math.PI*2); ctx.fillStyle = '#fff'; ctx.fill();
+    ctx.fillStyle = '#1a2e52'; ctx.font = 'bold 11px DM Sans,sans-serif'; ctx.fillText('Mój obszar', px+10, py-8);
+  }
+
+  if (polygonPoints.length > 0) {
+    ctx.beginPath(); ctx.moveTo(polygonPoints[0].x*W, polygonPoints[0].y*H);
+    polygonPoints.slice(1).forEach(p => ctx.lineTo(p.x*W, p.y*H));
+    if (!isDrawing) ctx.closePath();
+    else if (mouseX !== undefined) ctx.lineTo(mouseX*W, mouseY*H);
+    if (!isDrawing) { ctx.fillStyle = 'rgba(37,99,200,0.13)'; ctx.fill(); }
+    ctx.strokeStyle = 'rgba(37,99,200,0.8)'; ctx.lineWidth = 2;
+    ctx.setLineDash(isDrawing ? [5,4] : []); ctx.stroke(); ctx.setLineDash([]);
+    polygonPoints.forEach(pt => {
+      ctx.beginPath(); ctx.arc(pt.x*W, pt.y*H, 5, 0, Math.PI*2);
+      ctx.fillStyle = '#2563c8'; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+    });
+  }
+
+  alertPins.forEach(pin => {
+    const px = pin.x*W, py = pin.y*H;
+    const hl = highlightPin && highlightPin.label === pin.label;
+    const r = hl ? 16 : 12;
+    ctx.beginPath(); ctx.arc(px, py+2, r, 0, Math.PI*2); ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.fill();
+    ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI*2); ctx.fillStyle = pin.color + (hl?'':'cc'); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.font = (hl?'14':'11') + 'px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(pin.icon, px, py);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    if (hl) {
+      ctx.fillStyle = 'rgba(26,46,82,.85)';
+      const tw = ctx.measureText(pin.label).width;
+      ctx.beginPath(); ctx.roundRect(px+r+4, py-11, tw+16, 22, 6); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 11px DM Sans,sans-serif'; ctx.fillText(pin.label, px+r+12, py+4);
+    }
+  });
+}
+
+function setMapMode(mode) {
+  mapMode = mode; polygonPoints = []; isDrawing = false;
+  const rb = document.getElementById('btn-radius'), pb = document.getElementById('btn-polygon');
+  if (rb) { rb.style.background = mode==='radius'?'var(--blue)':'transparent'; rb.style.color = mode==='radius'?'#fff':'var(--blue)'; }
+  if (pb) { pb.style.background = mode==='polygon'?'var(--blue)':'transparent'; pb.style.color = mode==='polygon'?'#fff':'var(--blue)'; }
+  const rc = document.getElementById('radius-control');
+  if (rc) rc.style.display = mode==='radius'?'flex':'none';
+  document.getElementById('map-status-text').textContent = mode==='radius'
+    ? 'Kliknij na mapie aby ustawić środek obszaru (tryb: promień).'
+    : 'Kliknij kolejne punkty aby narysować obszar. Dwuklik = zakończ.';
+  document.getElementById('area-info').textContent = '';
+  drawMap();
+}
+
+function updateRadius(val) {
+  userRadius = parseInt(val);
+  document.getElementById('radius-label').textContent = val + ' km';
+  if (userCenter) document.getElementById('area-info').textContent = `Obszar: ~${Math.round(Math.PI * userRadius * userRadius)} km²`;
+  drawMap();
+}
+
+function clearMap() {
+  userCenter = null; polygonPoints = []; isDrawing = false; highlightPin = null;
+  document.getElementById('map-status-text').textContent = 'Obszar wyczyszczony.';
+  document.getElementById('area-info').textContent = '';
+  drawMap();
+}
+
+function zoomMap(f) { zoomLevel = Math.min(3, Math.max(0.5, zoomLevel * f)); drawMap(); }
+
+function flyToAlert(fx, fy, label) {
+  showPage('alerts');
+  highlightPin = {label};
+  setTimeout(() => { drawMap(); setTimeout(() => { highlightPin = null; drawMap(); }, 3000); }, 60);
+}
+
+function filterAlerts(type, el) {
+  document.querySelectorAll('#page-alerts .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.alert-feed-item').forEach(item => {
+    item.style.display = (type === 'all' || item.dataset.type === type) ? 'flex' : 'none';
+  });
+}
+
+function openReportModal()  { document.getElementById('report-modal').style.display = 'flex'; }
+function closeReportModal() { document.getElementById('report-modal').style.display = 'none'; }
+function submitReport()     { closeReportModal(); alert('✅ Dziękujemy za zgłoszenie! Zostanie opublikowane na mapie.'); }
+</script>
+</body>
+</html>
